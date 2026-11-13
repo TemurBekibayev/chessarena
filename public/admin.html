@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grand Arena — Boshqaruv & Analitika Markazi</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-dark: #06130e;
+      --bg-sidebar: #081a14;
+      --bg-card: rgba(13, 35, 26, 0.95);
+      --bg-card-hover: rgba(18, 48, 36, 0.95);
+      --border: rgba(245, 196, 81, 0.18);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --gold: #f5c451;
+      --gold-dark: #d99b26;
+      --emerald: #10b981;
+      --emerald-dark: #059669;
+      --danger: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --text: #f3f7f5;
+      --muted: #94a3b8;
+      --sidebar-width: 270px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 20% 0%, #0d2e22 0%, #05100c 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Layout Structure */
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Sidebar Navigation */
+    .admin-sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 25px rgba(0,0,0,0.5);
+    }
+
+    .sidebar-brand {
+      padding: 22px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-brand-icon {
+      font-size: 28px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 8px rgba(245, 196, 81, 0.4));
+    }
+    .sidebar-brand-info h2 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 0.3px;
+    }
+    .sidebar-brand-info p {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Sidebar Live Pill */
+    .sidebar-status-box {
+      margin: 14px 16px;
+      padding: 10px 12px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 700;
+      color: #34d399;
+    }
+    .dot-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulseAnim 2s infinite;
+    }
+    @keyframes pulseAnim {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Sidebar Nav List */
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sidebar-section-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 12px 10px 4px 10px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      border-radius: 10px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+    .nav-item-icon {
+      font-size: 17px;
+      width: 22px;
+      text-align: center;
+    }
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(245, 196, 81, 0.18), rgba(245, 196, 81, 0.04));
+      border: 1px solid rgba(245, 196, 81, 0.35);
+      color: var(--gold);
+      font-weight: 700;
+    }
+    .nav-item.active .nav-item-icon {
+      filter: drop-shadow(0 0 6px rgba(245, 196, 81, 0.5));
+    }
+    .nav-badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .nav-badge-warn {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+
+    /* Sidebar Footer */
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Main Content Area */
+    .admin-main {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    /* Top Navigation Bar */
+    .main-topbar {
+      height: 68px;
+      background: rgba(8, 26, 20, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sidebar-toggle-btn {
+      display: none;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--gold);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .topbar-breadcrumb {
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar-breadcrumb h1 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .topbar-breadcrumb p {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Content Body Container */
+    .main-body {
+      flex: 1;
+      padding: 22px 24px 40px 24px;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Buttons */
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 9px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      user-select: none;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #f5c451, #d99b26);
+      color: #111;
+      box-shadow: 0 2px 8px rgba(245, 196, 81, 0.25);
+    }
+    .btn-gold:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn-emerald {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+    }
+    .btn-emerald:hover { filter: brightness(1.1); }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: #fff;
+    }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(245, 196, 81, 0.4), transparent);
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(245, 196, 81, 0.4);
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .kpi-val {
+      font-size: 24px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .card-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    /* Table Styling */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    th, td {
+      padding: 11px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    th {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(0, 0, 0, 0.4);
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-online { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.35); }
+    .badge-active { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.35); }
+    .badge-passive { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+    .badge-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
+
+    /* Form Controls */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .input-ctrl {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.35);
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .input-ctrl:focus {
+      border-color: var(--gold);
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    /* Progress bar */
+    .progress-bar-wrap {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+      margin: 10px 0;
+    }
+
+    /* Comparison grid */
+    .game-comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .game-stat-box {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    /* Tab Panes */
+    .tab-pane { display: none; animation: fadeIn 0.15s ease-in-out; }
+    .tab-pane.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Sidebar Mobile Backdrop */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      z-index: 95;
+    }
+
+    /* Modals & Toast */
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 12, 9, 0.96);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+    .auth-box {
+      background: var(--bg-card);
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      padding: 26px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    }
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10b981;
+      color: #04130d;
+      font-weight: 800;
+      padding: 12px 20px;
+      border-radius: 10px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      animation: toastIn 0.2s ease;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+      .admin-sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop.active {
+        display: block;
+      }
+      .sidebar-toggle-btn {
+        display: inline-flex;
+      }
+      .admin-main {
+        margin-left: 0;
+      }
+      .main-topbar {
+        padding: 0 16px;
+      }
+      .main-body {
+        padding: 16px 14px 40px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast"></div>
+
+  <!-- Auth Modal -->
+  <div id="authOverlay">
+    <div class="auth-box">
+      <div style="font-size: 44px; margin-bottom: 10px;">👑</div>
+      <h2 style="color: var(--gold); margin-bottom: 8px;">Web Admin Kirish</h2>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 18px; line-height: 1.5;">
+        Telegram botda <b>/admin</b> buyrug'ini bosing yoki Admin kalitni (Telegram ID) kiriting:
+      </p>
+      <input id="adminKeyInput" type="password" class="input-ctrl" placeholder="Admin kalit yoki Telegram ID..." style="margin-bottom: 14px; text-align:center;" />
+      <button class="btn btn-gold" style="width: 100%; justify-content: center; padding: 11px;" onclick="submitAdminKey()">
+        🔑 Tizimga Kirish
+      </button>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+    <!-- SIDEBAR BACKDROP (Mobile) -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
+    <!-- SIDEBAR PANEL -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-brand-icon">👑</span>
+        <div class="sidebar-brand-info">
+          <h2>Grand Arena</h2>
+          <p>Admin & Analitika Markazi</p>
+        </div>
+      </div>
+
+      <div class="sidebar-status-box">
+        <div class="status-indicator">
+          <span class="dot-pulse"></span>
+          <span id="headerOnlineBadge">0 Online</span>
+        </div>
+        <span id="sidebarClock" style="font-size:11px; color:var(--muted); font-weight:600;">--:--</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-title">Asosiy Bo'limlar</div>
+
+        <div class="nav-item active" onclick="switchNavTab('overview', this)">
+          <div class="nav-item-left">
+            <span class="nav-item-icon">📊</span>
+            <span>Umumiy Tahlil</span>
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="switchNavTab('users', this)">
+          <div class="nav-item-left">
+            <span class="nav-item-icon">👥</span>
+            <span>Foydalanuvchilar</span>
+          </div>
+          <span id="navUsersCount" class="nav-badge" style="background:rgba(255,255,255,0.08); color:#cbd5e1;">0</span>
+        </div>
+
+        <div class="nav-item" onclick="switchNavTab('tournaments', this)">
+          <div class="nav-item-left">
+            <span class="nav-item-icon">🏆</span>
+            <span>Turnirlar Nazorati</span>
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="switchNavTab('conversions', this)">
+          <div class="nav-item-left">
+            <span class="nav-item-icon">💸</span>
+            <span>Konvertatsiya (Payout)</span>
+          </div>
+          <span id="navPendingBadge" class="nav-badge nav-badge-warn" style="display:none;">0</span>
+        </div>
+
+        <div class="sidebar-section-title" style="margin-top:8px;">Sozlash & Tarqatish</div>
+
+        <div class="nav-item" onclick="switchNavTab('tasks', this)">
+          <div class="nav-item-left">
+            <span class="nav-item-icon">📢</span>
+            <span>Kanallar & Vazifalar</span>
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="switchNavTab('settings', this)">
+          <div class="nav-item-left">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Sozlamalar & Rassilka</span>
+          </div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-emerald" style="width:100%; justify-content:center;" onclick="fetchDashboard()">
+          🔄 Yangilash
+        </button>
+        <a href="/" class="btn btn-outline" style="width:100%; justify-content:center;">
+          🎮 O'yinga Qaytish
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="admin-main">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="main-topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle-btn" onclick="toggleSidebar(true)" title="Menyuni ochish">
+            ☰
+          </button>
+          <div class="topbar-breadcrumb">
+            <h1 id="pageTitle">📊 Umumiy Tahlil & O'yinlar</h1>
+            <p id="lastUpdatedLabel">Server ma'lumotlari kutilmoqda...</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-outline" onclick="fetchDashboard()" title="Ma'lumotlarni qayta yuklash">
+            🔄 <span style="display:inline-block;">Yangilash</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY -->
+      <div class="main-body">
+
+        <!-- ============================================================ -->
+        <!-- TAB 1: OVERVIEW & GAME ANALYTICS -->
+        <!-- ============================================================ -->
+        <div id="tab-overview" class="tab-pane active">
+          <!-- KPI Stats Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">🟢 Hozir Online (Live)</div>
+              <div id="kpiOnline" class="kpi-val" style="color:#34d399;">0</div>
+              <div id="kpiInMatch" class="kpi-sub">⚔️ Hozir o'yinda: 0 kishi</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">🔥 Kunlik Faol (DAU - 24s)</div>
+              <div id="kpiDau" class="kpi-val" style="color:#f5c451;">0</div>
+              <div id="kpiNewToday" class="kpi-sub">🆕 Bugun qo'shilganlar: +0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">📅 Haftalik Faol (WAU - 7 kun)</div>
+              <div id="kpiWau" class="kpi-val">0</div>
+              <div id="kpiTotalUsers" class="kpi-sub">👥 Jami ro'yxatdan o'tgan: 0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">🎮 Active vs 💤 Passive O'yinchilar</div>
+              <div id="kpiActiveVsPassive" class="kpi-val" style="color:#60a5fa;">0 / 0</div>
+              <div id="kpiPassiveSub" class="kpi-sub">Faol: 0 • Passiv: 0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">⚔️ Jami O'ynalgan Partiyalar</div>
+              <div id="kpiTotalMatches" class="kpi-val">0</div>
+              <div id="kpiMatchesToday" class="kpi-sub">Bugun: 0 ta | PvP: 0 | Bot: 0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">🪙 Tangalar Aylanmasi</div>
+              <div id="kpiCoins" class="kpi-val" style="color:#f5c451;">0 G</div>
+              <div id="kpiCoinsSub" class="kpi-sub">Bonus: 0 G • Earned: 0 G</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">📺 Jami Ko'rilgan Reklamalar</div>
+              <div id="kpiAdsTotal" class="kpi-val" style="color:#34d399;">0 ta</div>
+              <div id="kpiAdsToday" class="kpi-sub">🔥 Bugun: 0 ta ko'rilgan</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">💵 AdsGram Daromadi (Est.)</div>
+              <div id="kpiAdRevenueUsd" class="kpi-val" style="color:#f5c451;">$0.0000</div>
+              <div id="kpiAdRevenueUzs" class="kpi-sub">≈ 0 so'm (Bugun: $0.0000)</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">⏳ Kutilayotgan Konvertatsiyalar</div>
+              <div id="kpiPendingConv" class="kpi-val" style="color:#fbbf24;">0</div>
+              <div id="kpiStarsTotal" class="kpi-sub">⭐ Jami Stars balans: 0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">📈 Bugun Net O'sish (Sof Foyda)</div>
+              <div id="kpiNetGrowth" class="kpi-val" style="color:#34d399;">+0 kishi</div>
+              <div id="kpiNetGrowthSub" class="kpi-sub">🆕 Yangi: +0 | ❌ O'chirgan: -0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">🚫 Botni O'chirganlar (Churn)</div>
+              <div id="kpiBlockedUsers" class="kpi-val" style="color:#f87171;">0 kishi</div>
+              <div id="kpiBlockedSub" class="kpi-sub">Bugun o'chirgan: 0 kishi</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">🛡 Anti-Cheat & Ban Nazorati</div>
+              <div id="kpiFlagged" class="kpi-val" style="color:#f87171;">0</div>
+              <div class="kpi-sub">Shubhali (&lt;80% ishonch) yoki Ban</div>
+            </div>
+          </div>
+
+          <!-- INTERACTIVE CHARTS -->
+          <div class="card">
+            <div class="card-title">
+              <span>📊 Foydalanuvchilar O'sishi, Botni O'chirish va Aktivlik Grafigi</span>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-gold" id="btnRange14" onclick="setChartRange(14)">14 Kunlik</button>
+                <button class="btn btn-outline" id="btnRange7" onclick="setChartRange(7)">7 Kunlik</button>
+                <button class="btn btn-outline" id="btnRangeHourly" onclick="setChartRange('hourly')">Bugun (Soatlik)</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; margin-top: 8px;">
+              <!-- Chart 1: Growth vs Drop -->
+              <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); border-radius:12px; padding:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <strong style="font-size:13.5px; color:#f5c451;">📈 O'sish va Kamayish Dinamikasi (Net Growth)</strong>
+                  <span id="chartGrowthBadge" class="badge badge-online">Faol hisoblanmoqda</span>
+                </div>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">
+                  🟢 Yashil: Yangi (+) • 🔴 Qizil: O'chirganlar (-) • 🟡 Chiziq: Sof O'sish (Net)
+                </p>
+                <div style="position:relative; height:240px; width:100%;">
+                  <canvas id="growthChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Chart 2: DAU & Matches Activity -->
+              <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); border-radius:12px; padding:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <strong style="font-size:13.5px; color:#60a5fa;">🎮 Kunlik Aktivlik & O'ynalgan Partiyalar</strong>
+                  <span id="chartActivityBadge" class="badge badge-active">Faol</span>
+                </div>
+                <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">
+                  🔵 Chiziq: Kunlik Faol (DAU) • 🟢 Ustun: Shashka • 🟡 Ustun: Shaxmat
+                </p>
+                <div style="position:relative; height:240px; width:100%;">
+                  <canvas id="activityChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AdsGram Video & Interstitial Revenue Box -->
+          <div class="card">
+            <div class="card-title">
+              <span>📺 AdsGram Reklamalari (Video & Interstitial) Tahlili</span>
+              <span class="badge badge-online">CPM: <span id="adBoxCpmLabel">$1.50</span></span>
+            </div>
+            <div class="game-comp-grid" style="margin-top:0; margin-bottom:14px;">
+              <div class="game-stat-box">
+                <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:700;">Jami Ko'rishlar</div>
+                <div id="adBoxTotalViews" style="font-size:22px; font-weight:800; color:#34d399; margin:4px 0;">0 ta</div>
+                <div style="font-size:12px; color:var(--muted);">Bugun: <b id="adBoxTodayViews" style="color:#fff;">0 ta</b></div>
+              </div>
+              <div class="game-stat-box">
+                <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:700;">O'yinchilarga Berilgan Bonus</div>
+                <div id="adBoxBonusGiven" style="font-size:22px; font-weight:800; color:#f5c451; margin:4px 0;">0 G</div>
+                <div style="font-size:12px; color:var(--muted);">Faqat o'yin ichida ishlatiladigan bonus</div>
+              </div>
+              <div class="game-stat-box">
+                <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:700;">Jami Daromad (Est.)</div>
+                <div id="adBoxTotalRev" style="font-size:20px; font-weight:800; color:#f5c451; margin:4px 0;">$0.0000</div>
+                <div style="font-size:12px; color:var(--muted);">Bugungi foyda: <b id="adBoxTodayRev" style="color:#34d399;">$0.0000</b></div>
+              </div>
+            </div>
+            
+            <div style="font-weight:700; font-size:13px; color:#fff; margin-bottom:8px;">Oxirgi Ko'rilgan Reklamalar Tarixi:</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Vaqt</th>
+                    <th>Foydalanuvchi</th>
+                    <th>Bonus (O'yinchiga)</th>
+                    <th>Platforma Daromadi (Est.)</th>
+                  </tr>
+                </thead>
+                <tbody id="recentAdsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Which Game is Played More: Checkers vs Chess -->
+          <div class="card">
+            <div class="card-title">
+              <span>♟ Qaysi O'yin Ko'p O'ynalayapti? (Shashka vs Shaxmat Tahlili)</span>
+              <span id="mostPopularBadge" class="badge badge-online">🔥 Yetakchi: Shashka</span>
+            </div>
+
+            <div class="progress-bar-wrap">
+              <div id="barCheckers" style="width:50%; background:linear-gradient(90deg,#10b981,#059669);" title="Shashka"></div>
+              <div id="barChess" style="width:50%; background:linear-gradient(90deg,#f5c451,#d97706);" title="Shaxmat"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:12px;">
+              <span id="pctCheckersLabel" style="color:#34d399;">⚫⚪ Shashka: 50% (0 ta)</span>
+              <span id="pctChessLabel" style="color:#f5c451;">♔♕ Shaxmat: 50% (0 ta)</span>
+            </div>
+
+            <div class="game-comp-grid">
+              <div class="game-stat-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <strong style="font-size:14px; color:#34d399;">⚫⚪ Shashka (Uzun Damka • 45s)</strong>
+                  <span id="checkersLiveNow" class="badge badge-online">Hozir: 0 partiya</span>
+                </div>
+                <div style="font-size:12.5px; color:var(--muted); line-height:1.7;">
+                  • Jami o'ynalgan: <b id="checkersTotalVal" style="color:#fff;">0 ta</b><br/>
+                  • Bugun o'ynalgan (24s): <b id="checkersTodayVal" style="color:#fff;">0 ta</b><br/>
+                  • Umumiy ulushi: <b id="checkersShareVal" style="color:#34d399;">0%</b>
+                </div>
+              </div>
+
+              <div class="game-stat-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <strong style="font-size:14px; color:#f5c451;">♔♕ Shaxmat (FIDE • 60s)</strong>
+                  <span id="chessLiveNow" class="badge badge-active">Hozir: 0 partiya</span>
+                </div>
+                <div style="font-size:12.5px; color:var(--muted); line-height:1.7;">
+                  • Jami o'ynalgan: <b id="chessTotalVal" style="color:#fff;">0 ta</b><br/>
+                  • Bugun o'ynalgan (24s): <b id="chessTodayVal" style="color:#fff;">0 ta</b><br/>
+                  • Umumiy ulushi: <b id="chessShareVal" style="color:#f5c451;">0%</b>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Matches Table -->
+          <div class="card">
+            <div class="card-title">📜 Oxirgi O'ynalgan Partiyalar (Real-vaqt)</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Vaqt</th>
+                    <th>O'yin</th>
+                    <th>Oq (White)</th>
+                    <th>Qora (Black)</th>
+                    <th>G'olib / Sabab</th>
+                    <th>Stavka / Sovrin</th>
+                  </tr>
+                </thead>
+                <tbody id="recentMatchesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 2: USERS ANALYTICS -->
+        <!-- ============================================================ -->
+        <div id="tab-users" class="tab-pane">
+          <div class="card">
+            <div class="card-title">
+              <span>👥 O'yinchilar Faolligi & Balans Tahlili</span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn btn-outline" onclick="setUserFilter('all')">Barchasi</button>
+                <button class="btn btn-emerald" onclick="setUserFilter('online')">🟢 Online</button>
+                <button class="btn btn-outline" onclick="setUserFilter('active')">🔥 Faol (1+)</button>
+                <button class="btn btn-outline" onclick="setUserFilter('passive')">💤 Passiv (0)</button>
+                <button class="btn btn-danger" onclick="setUserFilter('flagged')">⚠️ Shubhali / Ban</button>
+              </div>
+            </div>
+
+            <div class="form-grid" style="margin-bottom: 14px;">
+              <input id="userSearchInput" type="text" class="input-ctrl" placeholder="🔍 Ism, @username yoki Telegram ID bo'yicha qidirish..." oninput="renderUsersTable()" />
+              <select id="userSortSelect" class="input-ctrl" onchange="renderUsersTable()">
+                <option value="games_desc">🔥 Eng ko'p o'yin o'ynaganlar</option>
+                <option value="active_desc">🕒 Oxirgi faollik bo'yicha</option>
+                <option value="elo_desc">🏆 Eng yuqori ELO reyting</option>
+                <option value="earned_desc">🪙 Eng ko'p Earned (Yutuq) tanga</option>
+                <option value="refs_desc">👥 Eng ko'p referal yig'ganlar</option>
+              </select>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>O'yinchi</th>
+                    <th>Holati / Faollik</th>
+                    <th>O'yinlar (W / L / D)</th>
+                    <th>Shashka / Shaxmat</th>
+                    <th>Reklama & Referal</th>
+                    <th>Balans (Bonus / Earned / ⭐)</th>
+                    <th>ELO & Trust</th>
+                    <th>Amallar</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 3: TOURNAMENTS MANAGEMENT -->
+        <!-- ============================================================ -->
+        <div id="tab-tournaments" class="tab-pane">
+          <div class="card">
+            <div class="card-title">🏆 Yangi Turnir Yaratish</div>
+            <div class="form-grid">
+              <div class="input-group">
+                <label>Turnir Nomi</label>
+                <input id="tourTitle" class="input-ctrl" placeholder="Masalan: 🏆 Kechki Shashka Kubogi" />
+              </div>
+              <div class="input-group">
+                <label>O'yin Turi</label>
+                <select id="tourGame" class="input-ctrl">
+                  <option value="checkers">⚫⚪ Shashka</option>
+                  <option value="chess">♔♕ Shaxmat</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Kirish Valyutasi</label>
+                <select id="tourEntryType" class="input-ctrl">
+                  <option value="coins">🪙 Tanga (G)</option>
+                  <option value="stars">⭐ Telegram Stars</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Kirish Badali</label>
+                <input id="tourFee" type="number" class="input-ctrl" value="25" />
+              </div>
+              <div class="input-group">
+                <label>Sovrin Fondi</label>
+                <input id="tourPrize" type="number" class="input-ctrl" value="500" />
+              </div>
+              <div class="input-group">
+                <label>Min. Odam Soni</label>
+                <input id="tourMinPlayers" type="number" class="input-ctrl" value="8" />
+              </div>
+              <div class="input-group">
+                <label>Max. Odam Soni</label>
+                <input id="tourMaxPlayers" type="number" class="input-ctrl" value="32" />
+              </div>
+              <div class="input-group">
+                <label>Davomiyligi (Soat)</label>
+                <input id="tourHours" type="number" class="input-ctrl" value="24" />
+              </div>
+            </div>
+            <button class="btn btn-gold" onclick="createTournament()">➕ Turnirni Ishga Tushirish</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📋 Mavjud Turnirlar & Ishtirokchilar Holati</div>
+            <div id="tournamentsAdminList"></div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 4: CONVERSIONS / PAYOUTS -->
+        <!-- ============================================================ -->
+        <div id="tab-conversions" class="tab-pane">
+          <div class="card">
+            <div class="card-title">💸 Konvertatsiya & Pul/Stars Yechish So'rovlari</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID / Vaqt</th>
+                    <th>O'yinchi</th>
+                    <th>Miqdor</th>
+                    <th>Yo'nalish</th>
+                    <th>Manzil</th>
+                    <th>Anti-Cheat</th>
+                    <th>Qaror</th>
+                  </tr>
+                </thead>
+                <tbody id="conversionsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 5: TASKS & CHANNELS -->
+        <!-- ============================================================ -->
+        <div id="tab-tasks" class="tab-pane">
+          <div class="card">
+            <div class="card-title">📢 Yangi Kanal yoki Guruh Vazifasini Qo'shish</div>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+              Obuna tekshiruvi ishlashi uchun <b>@ChessTonArenaBot</b> o'sha kanal yoki guruhda <b>Admin</b> bo'lishi kerak.
+            </p>
+            <div class="form-grid">
+              <div class="input-group">
+                <label>Kanal / Guruh @username</label>
+                <input id="taskChannel" class="input-ctrl" placeholder="@ChessTonArena" />
+              </div>
+              <div class="input-group">
+                <label>Vazifa Sarlavhasi</label>
+                <input id="taskTitle" class="input-ctrl" placeholder="Rasmiy kanalga obuna bo'ling" />
+              </div>
+              <div class="input-group">
+                <label>Mukofot (Bonus G)</label>
+                <input id="taskReward" type="number" class="input-ctrl" value="5" />
+              </div>
+            </div>
+            <button class="btn btn-gold" onclick="createTask()">➕ Vazifa Qo'shish</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📋 Mavjud Vazifalar Ro'yxati</div>
+            <div id="tasksAdminList"></div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 6: SETTINGS & BROADCAST -->
+        <!-- ============================================================ -->
+        <div id="tab-settings" class="tab-pane">
+          <div class="card">
+            <div class="card-title">⚙️ Iqtisodiyot, Limitlar va AdsGram Sozlamalari</div>
+            <div class="form-grid">
+              <div class="input-group">
+                <label>Komissiya (Rake %)</label>
+                <input id="setRake" type="number" class="input-ctrl" />
+              </div>
+              <div class="input-group">
+                <label>Yurish vaqti (soniya)</label>
+                <input id="setMoveTime" type="number" class="input-ctrl" />
+              </div>
+              <div class="input-group">
+                <label>AdsGram Reward Block ID (Video)</label>
+                <input id="setAdsgram" type="text" class="input-ctrl" />
+              </div>
+              <div class="input-group">
+                <label>AdsGram Interstitial ID (O'yin tugaganda)</label>
+                <input id="setAdsgramInterstitial" type="text" class="input-ctrl" placeholder="int-58970" />
+              </div>
+              <div class="input-group">
+                <label>AdsGram CPM ($ / 1000)</label>
+                <input id="setAdsCpm" type="number" step="0.1" class="input-ctrl" value="1.5" />
+              </div>
+              <div class="input-group">
+                <label>Min. Convert (G)</label>
+                <input id="setMinConv" type="number" class="input-ctrl" />
+              </div>
+              <div class="input-group">
+                <label>Kunlik Limit (G)</label>
+                <input id="setMaxDailyConv" type="number" class="input-ctrl" />
+              </div>
+              <div class="input-group">
+                <label>Convert uchun Min. G'alaba</label>
+                <input id="setMinWins" type="number" class="input-ctrl" />
+              </div>
+              <div class="input-group">
+                <label>Convert uchun Min. Referal</label>
+                <input id="setMinRefs" type="number" class="input-ctrl" />
+              </div>
+              <div class="input-group">
+                <label>Convert uchun Min. ELO</label>
+                <input id="setMinElo" type="number" class="input-ctrl" />
+              </div>
+            </div>
+            <button class="btn btn-gold" onclick="saveSettings()">💾 Sozlamalarni Saqlash</button>
+          </div>
+
+          <!-- Channel Daily Post -->
+          <div class="card">
+            <div class="card-title">
+              <span>📢 Rasmiy Kanal va Guruhga Kunlik Xabar (@ChessTonArena)</span>
+              <span class="badge badge-online">Avtomatik Faol</span>
+            </div>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:12px; line-height:1.5;">
+              Tizim har kuni avtomatik ravishda <b>@ChessTonArena</b> kanali va <b>@ChessTonArenaChat</b> guruhiga o'yinchilar faolligi, eng sara natijalar va bonuslar haqida post jo'natadi.
+            </p>
+            <button class="btn btn-gold" onclick="sendDailyBroadcastNow()">
+              📢 Kanal va Guruhga Hoziroq Post Yuborish (@ChessTonArena)
+            </button>
+          </div>
+
+          <!-- Custom Broadcast -->
+          <div class="card">
+            <div class="card-title">📨 Bot A'zolari va Guruhlarga Xabar Yuborish (Broadcast)</div>
+            <textarea id="broadcastText" rows="4" class="input-ctrl" placeholder="Xabar matni (HTML teglar ishlaydi: <b>qalin</b>, <i>kursiv</i>)..." style="margin-bottom:12px;"></textarea>
+
+            <div style="display:flex; flex-wrap:wrap; gap:16px; margin-bottom:12px; font-size:12.5px;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input id="bcToUsers" type="checkbox" checked /> 👤 Bot a'zolariga (Lichka)
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input id="bcToGroups" type="checkbox" checked /> 💬 Ulangan guruhlarga
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input id="bcToChannels" type="checkbox" checked /> 📢 Rasmiy kanalga (@ChessTonArena)
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input id="bcWithBtn" type="checkbox" checked /> 🎮 «Arenaga Kirish» tugmasi
+              </label>
+            </div>
+
+            <div class="form-grid" style="margin-bottom:12px;">
+              <div class="input-group">
+                <label>Tugma Yozuvi</label>
+                <input id="bcBtnText" type="text" class="input-ctrl" value="🎮 Arenaga Kirish" />
+              </div>
+            </div>
+
+            <button class="btn btn-emerald" onclick="sendBroadcast()">🚀 Xabarni Yuborish</button>
+
+            <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border-subtle);">
+              <div style="font-weight:800; color:var(--gold); margin-bottom:8px; font-size:13px;">💬 Ulangan Guruhlar va Kanallar:</div>
+              <div id="botChatsAdminList" style="margin-bottom:10px;"></div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <input id="newChatTarget" class="input-ctrl" style="max-width:240px;" placeholder="@GuruhUsername yoki ID" />
+                <input id="newChatTitle" class="input-ctrl" style="max-width:200px;" placeholder="Guruh nomi" />
+                <select id="newChatType" class="input-ctrl" style="max-width:140px;">
+                  <option value="supergroup">💬 Guruh</option>
+                  <option value="channel">📢 Kanal</option>
+                </select>
+                <button class="btn btn-gold" onclick="addBotChat()">➕ Qo'shish</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let adminKey = urlParams.get('key') || localStorage.getItem('arena_admin_key') || '';
+    if (urlParams.get('key')) {
+      localStorage.setItem('arena_admin_key', adminKey);
+    }
+
+    let dashData = null;
+    let currentUserFilter = 'all';
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      clearTimeout(el._t);
+      el._t = setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    const tabTitles = {
+      overview: "📊 Umumiy Tahlil & O'yinlar",
+      users: "👥 Foydalanuvchilar (Active / Passive)",
+      tournaments: "🏆 Turnirlar Boshqaruvi",
+      conversions: "💸 Konvertatsiya & To'lovlar",
+      tasks: "📢 Kanallar & Vazifalar",
+      settings: "⚙️ Sozlamalar & Rassilka"
+    };
+
+    function switchNavTab(tabId, el) {
+      document.querySelectorAll('.tab-pane').forEach((p) => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach((item) => item.classList.remove('active'));
+      
+      const targetPane = document.getElementById('tab-' + tabId);
+      if (targetPane) targetPane.classList.add('active');
+      if (el) el.classList.add('active');
+
+      const titleEl = document.getElementById('pageTitle');
+      if (titleEl && tabTitles[tabId]) {
+        titleEl.textContent = tabTitles[tabId];
+      }
+
+      // Close mobile sidebar if open
+      toggleSidebar(false);
+    }
+
+    // Keep backwards compatibility for any inline switchTab calls
+    function switchTab(tabId, btn) {
+      const navItem = document.querySelector(`.nav-item[onclick*="${tabId}"]`);
+      switchNavTab(tabId, navItem || btn);
+    }
+
+    function toggleSidebar(open) {
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (open) {
+        sidebar.classList.add('open');
+        backdrop.classList.add('active');
+      } else {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('active');
+      }
+    }
+
+    function updateClock() {
+      const clk = document.getElementById('sidebarClock');
+      if (clk) {
+        clk.textContent = new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function submitAdminKey() {
+      const val = document.getElementById('adminKeyInput').value.trim();
+      if (!val) return;
+      adminKey = val;
+      localStorage.setItem('arena_admin_key', adminKey);
+      document.getElementById('authOverlay').style.display = 'none';
+      fetchDashboard();
+    }
+
+    function formatAgo(ts) {
+      if (!ts) return 'Hech qachon';
+      const diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+      if (diffSec < 60) return `${diffSec}s oldin`;
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m oldin`;
+      if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}s oldin`;
+      return `${Math.floor(diffSec / 86400)} kun oldin`;
+    }
+
+    async function apiCall(path, method = 'GET', body = null) {
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-admin-key': adminKey,
+        'x-init-data': (tg && tg.initData) ? tg.initData : ''
+      };
+      const opts = { method, headers };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(path, opts);
+      if (res.status === 401) {
+        document.getElementById('authOverlay').style.display = 'flex';
+        return null;
+      }
+      return await res.json();
+    }
+
+    async function fetchDashboard() {
+      const res = await apiCall('/api/admin/dashboard');
+      if (!res || !res.ok) return;
+      dashData = res.data;
+      renderAll();
+      document.getElementById('lastUpdatedLabel').textContent =
+        'Oxirgi yangilanish: ' + new Date().toLocaleTimeString();
+    }
+
+    async function sendAdminAction(action, payload = {}) {
+      const res = await apiCall('/api/admin/action', 'POST', { action, payload });
+      if (res && res.ok) {
+        if (res.message) showToast(res.message);
+        else showToast('✅ Bajarildi!');
+        dashData = res.data;
+        renderAll();
+      }
+    }
+
+    function renderAll() {
+      if (!dashData) return;
+      const st = dashData.stats || {};
+
+      document.getElementById('headerOnlineBadge').textContent = `${st.onlineUsers || 0} Online`;
+      document.getElementById('kpiOnline').textContent = st.onlineUsers || 0;
+      document.getElementById('kpiInMatch').textContent = `⚔️ Hozir o'yinda: ${st.inMatchPlayers || 0} kishi (${st.activeMatches || 0} partiya)`;
+      document.getElementById('kpiDau').textContent = st.active24h || 0;
+      document.getElementById('kpiNewToday').textContent = `🆕 Bugun yangi: +${st.newUsersToday || 0}`;
+      document.getElementById('kpiWau').textContent = st.active7d || 0;
+      document.getElementById('kpiTotalUsers').textContent = `👥 Jami: ${st.totalUsers || 0} foydalanuvchi`;
+      document.getElementById('kpiActiveVsPassive').textContent = `${st.playedAtLeastOneGame || 0} / ${st.passiveZeroGames || 0}`;
+      document.getElementById('kpiPassiveSub').textContent = `Faol: ${st.playedAtLeastOneGame || 0} • Passiv: ${st.passiveZeroGames || 0}`;
+
+      const navUsers = document.getElementById('navUsersCount');
+      if (navUsers) navUsers.textContent = st.totalUsers || 0;
+
+      document.getElementById('kpiTotalMatches').textContent = st.totalMatches || 0;
+      document.getElementById('kpiMatchesToday').textContent = `Bugun: ${st.matchesToday || 0} ta • PvP: ${st.pvpMatches || 0} • Bot: ${st.botMatches || 0}`;
+      document.getElementById('kpiCoins').textContent = `${(st.totalBonusCoins || 0) + (st.totalEarnedCoins || 0)} G`;
+      document.getElementById('kpiCoinsSub').textContent = `Bonus: ${st.totalBonusCoins || 0} G • Earned: ${st.totalEarnedCoins || 0} G`;
+      
+      const pendingConv = st.pendingConversions || 0;
+      document.getElementById('kpiPendingConv').textContent = pendingConv;
+      const navPending = document.getElementById('navPendingBadge');
+      if (navPending) {
+        navPending.textContent = pendingConv;
+        navPending.style.display = pendingConv > 0 ? 'inline-block' : 'none';
+      }
+
+      document.getElementById('kpiStarsTotal').textContent = `⭐ Jami Stars balans: ${st.totalStars || 0}`;
+      document.getElementById('kpiFlagged').textContent = st.flaggedUsers || 0;
+
+      // Net Growth & Blocked KPI
+      const netGrowth = (st.newUsersToday || 0) - (st.todayBlockedUsers || 0);
+      const netSign = netGrowth > 0 ? `+${netGrowth}` : `${netGrowth}`;
+      const netEl = document.getElementById('kpiNetGrowth');
+      if (netEl) {
+        netEl.textContent = `${netSign} kishi`;
+        netEl.style.color = netGrowth >= 0 ? '#34d399' : '#f87171';
+      }
+      const netSub = document.getElementById('kpiNetGrowthSub');
+      if (netSub) {
+        netSub.textContent = `🆕 Yangi: +${st.newUsersToday || 0} | ❌ O'chirgan: -${st.todayBlockedUsers || 0}`;
+      }
+      const blkEl = document.getElementById('kpiBlockedUsers');
+      if (blkEl) {
+        blkEl.textContent = `${st.totalBlockedUsers || 0} kishi`;
+      }
+      const blkSub = document.getElementById('kpiBlockedSub');
+      if (blkSub) {
+        blkSub.textContent = `Bugun o'chirgan: ${st.todayBlockedUsers || 0} kishi`;
+      }
+
+      // Render Dynamic Interactive Charts (Chart.js)
+      renderCharts();
+
+      // AdsGram Video Views & Revenue KPI
+      const totalAds = st.totalAdsWatched || 0;
+      const todayAds = st.adsWatchedToday || 0;
+      const revUsd = Number(st.estimatedAdRevenueUsd || 0).toFixed(4);
+      const todayRevUsd = Number(st.todayAdRevenueUsd || 0).toFixed(4);
+      const revUzs = (st.estimatedAdRevenueUzs || 0).toLocaleString();
+      const todayRevUzs = (st.todayAdRevenueUzs || 0).toLocaleString();
+      const cpmVal = Number(st.adsCpmUsd || 1.5).toFixed(2);
+      const perViewUsd = (Number(st.adsCpmUsd || 1.5) / 1000).toFixed(4);
+      const perViewUzs = Math.round((Number(st.adsCpmUsd || 1.5) / 1000) * 12850);
+
+      document.getElementById('kpiAdsTotal').textContent = `${totalAds} ta`;
+      document.getElementById('kpiAdsToday').textContent = `🔥 Bugun ko'rilgan: ${todayAds} ta`;
+      document.getElementById('kpiAdRevenueUsd').textContent = `$${revUsd}`;
+      document.getElementById('kpiAdRevenueUzs').textContent = `≈ ${revUzs} so'm (Bugun: $${todayRevUsd})`;
+
+      document.getElementById('adBoxTotalViews').textContent = `${totalAds} ta`;
+      document.getElementById('adBoxTodayViews').textContent = `${todayAds} ta`;
+      document.getElementById('adBoxBonusGiven').textContent = `${st.adsCoinsDistributed || 0} G`;
+      document.getElementById('adBoxTotalRev').textContent = `$${revUsd} (≈ ${revUzs} so'm)`;
+      document.getElementById('adBoxTodayRev').textContent = `$${todayRevUsd} (≈ ${todayRevUzs} so'm)`;
+      document.getElementById('adBoxCpmLabel').textContent = `$${cpmVal} ($${perViewUsd}/ko'rish)`;
+
+      const recentAdsBody = document.getElementById('recentAdsBody');
+      const recentAds = dashData.recentAds || [];
+      recentAdsBody.innerHTML = recentAds.length === 0
+        ? '<tr><td colspan="4" style="text-align:center; color:var(--muted); padding:16px;">Hozircha reklama ko\'rishlar tarixi bo\'sh</td></tr>'
+        : recentAds.map((a) => `
+            <tr>
+              <td style="color:var(--muted); font-size:11.5px;">${formatAgo(a.watchedAt)}</td>
+              <td><b>${a.userName || 'Player'}</b> <span style="font-size:11px; color:var(--muted);">(ID: <code>${a.userId}</code>)</span></td>
+              <td style="color:#f5c451; font-weight:700;">+${a.rewardCoins || 2} G (Bonus)</td>
+              <td style="color:#34d399; font-weight:700;">+$${perViewUsd} (≈ +${perViewUzs} so'm)</td>
+            </tr>
+          `).join('');
+
+      // Game Popularity Comparison
+      const chkPct = st.checkersPercent ?? 50;
+      const chsPct = st.chessPercent ?? 50;
+      document.getElementById('barCheckers').style.width = `${chkPct}%`;
+      document.getElementById('barChess').style.width = `${chsPct}%`;
+      document.getElementById('pctCheckersLabel').textContent = `⚫⚪ Shashka: ${chkPct}% (${st.checkersTotal || 0} ta)`;
+      document.getElementById('pctChessLabel').textContent = `♔♕ Shaxmat: ${chsPct}% (${st.chessTotal || 0} ta)`;
+      document.getElementById('mostPopularBadge').textContent =
+        (st.chessTotal || 0) > (st.checkersTotal || 0)
+          ? '🔥 Yetakchi: Shaxmat ♔'
+          : '🔥 Yetakchi: Shashka ⚫';
+
+      document.getElementById('checkersLiveNow').textContent = `Hozir: ${st.checkersActiveNow || 0} partiya`;
+      document.getElementById('checkersTotalVal').textContent = `${st.checkersTotal || 0} ta`;
+      document.getElementById('checkersTodayVal').textContent = `${st.checkersToday || 0} ta`;
+      document.getElementById('checkersShareVal').textContent = `${chkPct}%`;
+
+      document.getElementById('chessLiveNow').textContent = `Hozir: ${st.chessActiveNow || 0} partiya`;
+      document.getElementById('chessTotalVal').textContent = `${st.chessTotal || 0} ta`;
+      document.getElementById('chessTodayVal').textContent = `${st.chessToday || 0} ta`;
+      document.getElementById('chessShareVal').textContent = `${chsPct}%`;
+
+      // Recent Matches
+      const rmBody = document.getElementById('recentMatchesBody');
+      const matches = dashData.recentMatches || [];
+      rmBody.innerHTML = matches.length === 0
+        ? '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:16px;">Hozircha o\'yinlar tarixi bo\'sh</td></tr>'
+        : matches.map((m) => {
+            const winTxt = m.winnerColor === 'w' ? `🏆 ${m.whiteName}` : m.winnerColor === 'b' ? `🏆 ${m.blackName}` : '🤝 Durang';
+            return `
+              <tr>
+                <td style="color:var(--muted); font-size:11.5px;">${formatAgo(m.endedAt)}</td>
+                <td>${m.game === 'chess' ? '♔ Shaxmat' : '⚫ Shashka'}</td>
+                <td><b>${m.whiteName}</b></td>
+                <td><b>${m.blackName}</b></td>
+                <td><span style="color:#34d399; font-weight:700;">${winTxt}</span> <span style="font-size:11px; color:var(--muted);">(${m.reason})</span></td>
+                <td style="color:#f5c451; font-weight:700;">${m.stake} G → +${m.prize} G</td>
+              </tr>
+            `;
+          }).join('');
+
+      renderUsersTable();
+      renderTournamentsAdmin();
+      renderConversionsAdmin();
+      renderTasksAdmin();
+      renderBotChatsAdmin();
+      populateSettingsForm();
+    }
+
+    let currentChartRange = 14;
+    let growthChartInstance = null;
+    let activityChartInstance = null;
+
+    function setChartRange(range) {
+      currentChartRange = range;
+      const b14 = document.getElementById('btnRange14');
+      const b7 = document.getElementById('btnRange7');
+      const bH = document.getElementById('btnRangeHourly');
+      if (b14) { b14.className = range === 14 ? 'btn btn-gold' : 'btn btn-outline'; }
+      if (b7) { b7.className = range === 7 ? 'btn btn-gold' : 'btn btn-outline'; }
+      if (bH) { bH.className = range === 'hourly' ? 'btn btn-gold' : 'btn btn-outline'; }
+      renderCharts();
+    }
+
+    function renderCharts() {
+      if (!dashData || !window.Chart) return;
+
+      const isHourly = currentChartRange === 'hourly';
+      let labels = [];
+      let newUsersData = [];
+      let blockedUsersData = [];
+      let netGrowthData = [];
+      let activeUsersData = [];
+      let chessData = [];
+      let checkersData = [];
+
+      if (isHourly) {
+        const hourly = dashData.hourlyToday || [];
+        labels = hourly.map((h) => h.hour);
+        newUsersData = hourly.map((h) => h.newUsers);
+        blockedUsersData = hourly.map(() => 0);
+        netGrowthData = hourly.map((h) => h.newUsers);
+        activeUsersData = hourly.map((h) => h.activeUsers);
+        chessData = hourly.map((h) => h.matches);
+        checkersData = hourly.map(() => 0);
+        const gBadge = document.getElementById('chartGrowthBadge');
+        if (gBadge) gBadge.textContent = 'Bugungi soatlik dinamika';
+        const aBadge = document.getElementById('chartActivityBadge');
+        if (aBadge) aBadge.textContent = 'Bugungi soatlik faollik';
+      } else {
+        const timeline = dashData.timeline || [];
+        const sliceCount = currentChartRange === 7 ? 7 : 14;
+        const sliced = timeline.slice(-sliceCount);
+        labels = sliced.map((d) => d.label);
+        newUsersData = sliced.map((d) => d.newUsers);
+        blockedUsersData = sliced.map((d) => d.blockedUsers);
+        netGrowthData = sliced.map((d) => d.netGrowth);
+        activeUsersData = sliced.map((d) => d.activeUsers);
+        chessData = sliced.map((d) => d.chessMatches);
+        checkersData = sliced.map((d) => d.checkersMatches);
+        const gBadge = document.getElementById('chartGrowthBadge');
+        if (gBadge) gBadge.textContent = `${sliceCount} kunlik dinamika`;
+        const aBadge = document.getElementById('chartActivityBadge');
+        if (aBadge) aBadge.textContent = `${sliceCount} kunlik aktivlik`;
+      }
+
+      // 1. Growth Chart
+      const ctxGrowth = document.getElementById('growthChart');
+      if (ctxGrowth) {
+        if (growthChartInstance) growthChartInstance.destroy();
+        growthChartInstance = new Chart(ctxGrowth, {
+          data: {
+            labels,
+            datasets: [
+              {
+                type: 'bar',
+                label: "Qo'shilganlar (+)",
+                data: newUsersData,
+                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                borderColor: '#10b981',
+                borderWidth: 1.5,
+                borderRadius: 5,
+                order: 2
+              },
+              {
+                type: 'bar',
+                label: "O'chirganlar (-)",
+                data: blockedUsersData,
+                backgroundColor: 'rgba(239, 68, 68, 0.75)',
+                borderColor: '#ef4444',
+                borderWidth: 1.5,
+                borderRadius: 5,
+                order: 3
+              },
+              {
+                type: 'line',
+                label: "Sof O'sish (Net)",
+                data: netGrowthData,
+                borderColor: '#f5c451',
+                backgroundColor: 'rgba(245, 196, 81, 0.15)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#f5c451',
+                pointRadius: 3.5,
+                tension: 0.35,
+                order: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                labels: { color: '#f3f7f5', font: { size: 11, weight: 'bold' } }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(6, 19, 14, 0.95)',
+                titleColor: '#f5c451',
+                borderColor: 'rgba(245, 196, 81, 0.3)',
+                borderWidth: 1
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9ca3af', font: { size: 10.5 } }
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                ticks: { color: '#9ca3af', font: { size: 10.5 }, precision: 0 }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Activity Chart
+      const ctxAct = document.getElementById('activityChart');
+      if (ctxAct) {
+        if (activityChartInstance) activityChartInstance.destroy();
+        activityChartInstance = new Chart(ctxAct, {
+          data: {
+            labels,
+            datasets: [
+              {
+                type: 'line',
+                label: 'Kunlik Faol (DAU)',
+                data: activeUsersData,
+                borderColor: '#60a5fa',
+                backgroundColor: 'rgba(96, 165, 250, 0.15)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+                order: 1
+              },
+              {
+                type: 'bar',
+                label: 'Shashka',
+                data: checkersData,
+                backgroundColor: 'rgba(16, 185, 129, 0.65)',
+                borderColor: '#10b981',
+                borderWidth: 1,
+                borderRadius: 4,
+                order: 2
+              },
+              {
+                type: 'bar',
+                label: 'Shaxmat',
+                data: chessData,
+                backgroundColor: 'rgba(245, 196, 81, 0.7)',
+                borderColor: '#f5c451',
+                borderWidth: 1,
+                borderRadius: 4,
+                order: 3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                labels: { color: '#f3f7f5', font: { size: 11, weight: 'bold' } }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(6, 19, 14, 0.95)',
+                titleColor: '#60a5fa',
+                borderColor: 'rgba(96, 165, 250, 0.3)',
+                borderWidth: 1
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9ca3af', font: { size: 10.5 } }
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                ticks: { color: '#9ca3af', font: { size: 10.5 }, precision: 0 }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function setUserFilter(f) {
+      currentUserFilter = f;
+      renderUsersTable();
+    }
+
+    function renderUsersTable() {
+      if (!dashData) return;
+      const q = (document.getElementById('userSearchInput').value || '').toLowerCase().trim();
+      const sortBy = document.getElementById('userSortSelect').value;
+
+      let list = (dashData.users || []).slice();
+      if (currentUserFilter === 'online') list = list.filter((u) => u.isOnline);
+      else if (currentUserFilter === 'active') list = list.filter((u) => u.totalGames > 0);
+      else if (currentUserFilter === 'passive') list = list.filter((u) => u.totalGames === 0);
+      else if (currentUserFilter === 'flagged') list = list.filter((u) => u.trustScore < 80 || u.banned);
+
+      if (q) {
+        list = list.filter((u) =>
+          (u.name || '').toLowerCase().includes(q) ||
+          (u.username || '').toLowerCase().includes(q) ||
+          String(u.id).includes(q)
+        );
+      }
+
+      list.sort((a, b) => {
+        if (sortBy === 'games_desc') return (b.totalGames || 0) - (a.totalGames || 0);
+        if (sortBy === 'active_desc') return (b.lastActiveAt || 0) - (a.lastActiveAt || 0);
+        if (sortBy === 'elo_desc') return (b.elo || 1000) - (a.elo || 1000);
+        if (sortBy === 'earned_desc') return (b.earnedCoins || 0) - (a.earnedCoins || 0);
+        if (sortBy === 'refs_desc') return (b.referralCount || 0) - (a.referralCount || 0);
+        return 0;
+      });
+
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = list.map((u) => {
+        let statusBadge = '';
+        if (u.isOnline) {
+          statusBadge = `<span class="badge badge-online">${u.inMatch ? '⚔️ O\'yinda' : '🟢 Online'}</span>`;
+        } else if (u.totalGames > 0) {
+          statusBadge = `<span class="badge badge-active">🔥 Faol</span>`;
+        } else {
+          statusBadge = `<span class="badge badge-passive">💤 Passiv</span>`;
+        }
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700;">${u.name} ${u.banned ? '🚫' : ''}</div>
+              <div style="font-size:11px; color:var(--muted);">
+                ${u.username ? '@' + u.username + ' • ' : ''}ID: <code>${u.id}</code> (${(u.lang || 'uz').toUpperCase()})
+              </div>
+            </td>
+            <td>
+              ${statusBadge}
+              <div style="font-size:11px; color:var(--muted); margin-top:3px;">${formatAgo(u.lastActiveAt)}</div>
+            </td>
+            <td>
+              <div style="font-weight:800; font-size:13px; color:#fff;">${u.totalGames} ta o'yin</div>
+              <div style="font-size:11px; color:var(--muted);">
+                🏆 ${u.wins}W • 💀 ${u.losses}L • 🤝 ${u.draws}D (<b style="color:#34d399;">${u.winRate}%</b>)
+              </div>
+            </td>
+            <td>
+              <div style="font-size:11.5px;">⚫ Shashka: <b>${u.checkersPlayed}</b></div>
+              <div style="font-size:11.5px; color:#f5c451;">♔ Shaxmat: <b>${u.chessPlayed}</b></div>
+            </td>
+            <td>
+              <div style="font-size:11.5px;">📺 Ads: <b>${u.totalAdsWatched}</b> (Bugun: ${u.adCountToday}/5)</div>
+              <div style="font-size:11.5px; color:#34d399;">👥 Ref: <b>${u.referralCount} ta</b> (+${u.referralEarnings} G)</div>
+            </td>
+            <td>
+              <div>🪙 Bonus: <b>${u.bonusCoins} G</b></div>
+              <div style="color:#f5c451;">💎 Earned: <b>${u.earnedCoins} G</b></div>
+              <div style="color:#60a5fa;">⭐ Stars: <b>${u.stars}</b></div>
+            </td>
+            <td>
+              <div style="font-weight:700;">📊 ${u.elo} ELO</div>
+              <div style="font-size:11px; color:${u.trustScore >= 80 ? '#34d399' : '#f87171'};">
+                🛡 Trust: ${u.trustScore}%
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                <button class="btn btn-outline" style="padding:4px 7px; font-size:11px;" onclick="sendAdminAction('user_update',{userId:'${u.id}',addBonus:50})">+50G</button>
+                <button class="btn btn-outline" style="padding:4px 7px; font-size:11px;" onclick="sendAdminAction('user_update',{userId:'${u.id}',addStars:10})">+10⭐</button>
+                <button class="btn ${u.banned ? 'btn-emerald' : 'btn-danger'}" style="padding:4px 7px; font-size:11px;" onclick="sendAdminAction('user_update',{userId:'${u.id}',toggleBan:true})">
+                  ${u.banned ? 'Unban' : 'Ban 🚫'}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderTournamentsAdmin() {
+      if (!dashData) return;
+      const box = document.getElementById('tournamentsAdminList');
+      const list = dashData.tournaments || [];
+      box.innerHTML = list.length === 0
+        ? '<div style="color:var(--muted); font-size:12px; padding:12px; text-align:center;">Hozircha faol turnirlar yo\'q</div>'
+        : list.map((t) => {
+            const title = (t.title && t.title.uz) || 'Turnir';
+            const minP = t.minPlayers || 8;
+            const maxP = t.maxPlayers || 32;
+            const curP = t.participantsCount || (t.participants || []).length;
+            const needed = Math.max(0, minP - curP);
+            const pct = Math.min(100, Math.round((curP / minP) * 100));
+            const unit = t.entryType === 'stars' ? '⭐' : 'G';
+            const playersHtml = (t.participantDetails || [])
+              .map((p) => `<span class="badge badge-active" style="margin-right:4px; margin-bottom:4px;">${p.name} (${p.elo})</span>`)
+              .join('');
+
+            return `
+              <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); border-radius:12px; padding:14px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                  <div>
+                    <strong style="font-size:14.5px; color:#f5c451;">${title}</strong>
+                    <span style="font-size:12px; color:var(--muted); margin-left:8px;">
+                      (${t.game === 'chess' ? '♔ Shaxmat' : '⚫ Shashka'} • Kirish: ${t.entryFee} ${unit} • Sovrin: 🏆 ${t.prizePool} ${unit})
+                    </span>
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <button class="btn btn-emerald" style="padding:5px 9px; font-size:11.5px;" onclick="sendAdminAction('tour_finish',{tourId:'${t.id}'})">
+                      🏆 Yakunlash
+                    </button>
+                    <button class="btn btn-danger" style="padding:5px 9px; font-size:11.5px;" onclick="sendAdminAction('tour_delete',{tourId:'${t.id}'})">
+                      🗑 O'chirish
+                    </button>
+                  </div>
+                </div>
+                <div style="margin:10px 0;">
+                  <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
+                    <span>
+                      👥 Ishtirokchilar: <b>${curP} kishi</b> (Min: <b>${minP}</b> • Max: <b>${maxP}</b>)
+                    </span>
+                    <span style="color:${needed === 0 ? '#34d399' : '#fbbf24'}; font-weight:700;">
+                      ${needed === 0 ? '✅ Boshlanishga tayyor!' : `⏳ Yana ${needed} kishi kerak`}
+                    </span>
+                  </div>
+                  <div style="height:7px; background:rgba(255,255,255,0.08); border-radius:6px; overflow:hidden;">
+                    <div style="height:100%; width:${pct}%; background:linear-gradient(90deg,#10b981,#f5c451);"></div>
+                  </div>
+                </div>
+                <div style="font-size:11.5px; color:var(--muted);">
+                  Ishtirokchilar: ${playersHtml || '<i>Hozircha hech kim qo\'shilmagan</i>'}
+                </div>
+              </div>
+            `;
+          }).join('');
+    }
+
+    function createTournament() {
+      const title = document.getElementById('tourTitle').value.trim() || '🏆 Maxsus Turnir';
+      const game = document.getElementById('tourGame').value;
+      const entryType = document.getElementById('tourEntryType').value;
+      const entryFee = Number(document.getElementById('tourFee').value) || 25;
+      const prizePool = Number(document.getElementById('tourPrize').value) || 500;
+      const minPlayers = Number(document.getElementById('tourMinPlayers').value) || 8;
+      const maxPlayers = Number(document.getElementById('tourMaxPlayers').value) || 32;
+      const durationHours = Number(document.getElementById('tourHours').value) || 24;
+      sendAdminAction('tour_add', { title, game, entryType, entryFee, prizePool, minPlayers, maxPlayers, durationHours });
+    }
+
+    function renderConversionsAdmin() {
+      if (!dashData) return;
+      const tbody = document.getElementById('conversionsTableBody');
+      const list = dashData.conversions || [];
+      tbody.innerHTML = list.length === 0
+        ? '<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:16px;">Konvertatsiya so\'rovlari yo\'q</td></tr>'
+        : list.map((c) => {
+            const isPending = c.status === 'pending_review';
+            return `
+              <tr>
+                <td><b>${c.id}</b><div style="font-size:11px; color:var(--muted);">${formatAgo(c.createdAt)}</div></td>
+                <td>ID: <code>${c.userId}</code></td>
+                <td style="color:#f5c451; font-weight:700;">${c.coinsAmount} G</td>
+                <td><b>${c.payoutValue}</b></td>
+                <td><code>${c.destination}</code></td>
+                <td><span class="badge ${c.trustScore >= 80 ? 'badge-online' : 'badge-danger'}">${c.trustScore}%</span></td>
+                <td>
+                  ${isPending ? `
+                    <button class="btn btn-emerald" style="padding:4px 8px; font-size:11px;" onclick="sendAdminAction('conv_decision',{convId:'${c.id}',decision:'approve'})">✅ Tasdiqlash</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="sendAdminAction('conv_decision',{convId:'${c.id}',decision:'reject'})">❌ Rad etish</button>
+                  ` : `<span class="badge ${c.status === 'completed' ? 'badge-online' : 'badge-danger'}">${c.status}</span>`}
+                </td>
+              </tr>
+            `;
+          }).join('');
+    }
+
+    function renderTasksAdmin() {
+      if (!dashData) return;
+      const box = document.getElementById('tasksAdminList');
+      box.innerHTML = (dashData.tasks || []).map((tk) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); border-radius:10px; padding:10px 14px; margin-bottom:8px;">
+          <div>
+            <b>${(tk.title && tk.title.uz) || tk.id}</b>
+            <span style="color:var(--muted); font-size:12px; margin-left:8px;">(${tk.channelUsername || 'AdsGram'}) • <b style="color:#f5c451;">+${tk.rewardCoins} G</b></span>
+          </div>
+          <button class="btn btn-danger" style="padding:4px 9px; font-size:11px;" onclick="sendAdminAction('task_delete',{taskId:'${tk.id}'})">🗑 O'chirish</button>
+        </div>
+      `).join('');
+    }
+
+    function createTask() {
+      const channelUsername = document.getElementById('taskChannel').value.trim();
+      const title = document.getElementById('taskTitle').value.trim();
+      const rewardCoins = Number(document.getElementById('taskReward').value) || 5;
+      if (!channelUsername) return showToast('⚠️ Kanal @username kiriting!');
+      sendAdminAction('task_add', { channelUsername, title, rewardCoins });
+    }
+
+    let settingsLoadedOnce = false;
+    function populateSettingsForm() {
+      if (settingsLoadedOnce || !dashData || !dashData.settings) return;
+      settingsLoadedOnce = true;
+      const s = dashData.settings;
+      document.getElementById('setRake').value = s.rakePercent ?? 12;
+      document.getElementById('setMoveTime').value = s.moveTimeLimitSec ?? 60;
+      document.getElementById('setAdsgram').value = s.adsgramBlockId || '58136';
+      document.getElementById('setAdsgramInterstitial').value = s.adsgramInterstitialBlockId || 'int-58970';
+      document.getElementById('setAdsCpm').value = s.adsCpmUsd ?? 1.5;
+      document.getElementById('setMinConv').value = s.minConvertCoins || 1000;
+      document.getElementById('setMaxDailyConv').value = s.maxDailyConvertCoins || 1000;
+      document.getElementById('setMinWins').value = s.minWinsForConvert ?? 50;
+      document.getElementById('setMinRefs').value = s.minReferralsForConvert ?? 5;
+      document.getElementById('setMinElo').value = s.minEloForConvert ?? 1150;
+    }
+
+    function saveSettings() {
+      settingsLoadedOnce = false;
+      sendAdminAction('settings_update', {
+        rakePercent: Number(document.getElementById('setRake').value),
+        moveTimeLimitSec: Number(document.getElementById('setMoveTime').value),
+        adsgramBlockId: document.getElementById('setAdsgram').value.trim(),
+        adsgramInterstitialBlockId: document.getElementById('setAdsgramInterstitial').value.trim(),
+        adsCpmUsd: Number(document.getElementById('setAdsCpm').value || 1.5),
+        minConvertCoins: Number(document.getElementById('setMinConv').value),
+        maxDailyConvertCoins: Number(document.getElementById('setMaxDailyConv').value),
+        minWinsForConvert: Number(document.getElementById('setMinWins').value),
+        minReferralsForConvert: Number(document.getElementById('setMinRefs').value),
+        minEloForConvert: Number(document.getElementById('setMinElo').value)
+      });
+    }
+
+    function renderBotChatsAdmin() {
+      if (!dashData) return;
+      const box = document.getElementById('botChatsAdminList');
+      if (!box) return;
+      const list = dashData.botChats || [];
+      box.innerHTML = list.length === 0
+        ? '<div style="color:var(--muted); font-size:12px;">Guruhlar ro\'yxati bo\'sh</div>'
+        : list.map((c) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); border-radius:9px; padding:8px 12px; margin-bottom:6px;">
+            <div>
+              <span>${c.type === 'channel' ? '📢 Kanal:' : '💬 Guruh:'}</span>
+              <b style="margin-left:6px;">${c.title || c.id}</b>
+              <code style="margin-left:8px; color:#f5c451;">${c.username || c.id}</code>
+            </div>
+            <button class="btn btn-danger" style="padding:3px 8px; font-size:11px;" onclick="sendAdminAction('chat_delete',{id:'${c.id}'})">🗑 O'chirish</button>
+          </div>
+        `).join('');
+    }
+
+    function addBotChat() {
+      const target = document.getElementById('newChatTarget').value.trim();
+      const title = document.getElementById('newChatTitle').value.trim() || target;
+      const chatType = document.getElementById('newChatType').value;
+      if (!target) return showToast('⚠️ Guruh yoki kanal @username / ID kiriting!');
+      sendAdminAction('chat_add', { target, title, chatType });
+      document.getElementById('newChatTarget').value = '';
+      document.getElementById('newChatTitle').value = '';
+    }
+
+    function sendBroadcast() {
+      const text = document.getElementById('broadcastText').value.trim();
+      if (!text) return showToast('⚠️ Xabar matnini yozing!');
+      const toUsers = document.getElementById('bcToUsers').checked;
+      const toGroups = document.getElementById('bcToGroups').checked;
+      const toChannels = document.getElementById('bcToChannels').checked;
+      const withButton = document.getElementById('bcWithBtn').checked;
+      const buttonText = document.getElementById('bcBtnText').value.trim() || '🎮 Arenaga Kirish';
+      sendAdminAction('broadcast', {
+        text,
+        toUsers,
+        toGroups,
+        toChannels,
+        withButton,
+        buttonText
+      });
+      document.getElementById('broadcastText').value = '';
+    }
+
+    async function sendDailyBroadcastNow() {
+      if (!confirm("Rasmiy kanal va guruhga hoziroq kunlik xabar yuborilsinmi?")) return;
+      await sendAdminAction('send_daily_broadcast');
+    }
+
+    fetchDashboard();
+    setInterval(fetchDashboard, 5000);
+  </script>
+</body>
+</html>

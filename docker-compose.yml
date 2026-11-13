@@ -1,0 +1,13 @@
+services:
+  chess-ton-arena:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chess_ton_arena
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:3050:3050"
+    volumes:
+      - ./data:/app/data

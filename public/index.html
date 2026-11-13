@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Grand Arena — Shashka & Shaxmat</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+  <link rel="stylesheet" href="/styles.css?v=20" />
+</head>
+<body class="in-lobby-hud">
+  <div id="toastMsg" class="toast-msg"></div>
+
+  <div class="app-container">
+    <!-- Top Bar -->
+    <header class="top-header">
+      <div class="profile-pill">
+        <div id="userAvatar" class="avatar-circle">T</div>
+        <div class="profile-meta">
+          <span id="userName" class="profile-name">Temur</span>
+          <span id="userElo" class="profile-elo">🛡️ 1000 ELO</span>
+        </div>
+      </div>
+
+      <div class="header-balances">
+        <div class="bal-chip gold" onclick="switchNav('convert')">
+          <span>🪙</span>
+          <span id="userCoins">50</span>
+          <span>G</span>
+        </div>
+        <div class="bal-chip stars" onclick="switchNav('convert')">
+          <span>⭐</span>
+          <span id="userStars">0</span>
+        </div>
+        <button id="adminHeaderBtn" class="lang-btn" style="display:none; background:rgba(245,196,81,0.28); border-color:#f5c451;" onclick="switchNav('admin')" title="Admin Panel">👑</button>
+        <button id="langBtn" class="lang-btn" onclick="openLangModal()">🇺🇿 UZ</button>
+      </div>
+    </header>
+
+    <!-- 1. ARENA / LOBBY VIEW -->
+    <section id="view-arena" class="view-section active">
+      <!-- Lobby Mode (Gramora Full-Screen Scenic HUD) -->
+      <div id="lobbyPanel" class="gramora-lobby">
+        <!-- Top HUD: Profile (Left) & Currency/Deposit (Right) -->
+        <div class="gramora-top-hud">
+          <!-- Left: Big Gold-Rimmed Avatar & Name -->
+          <div class="gramora-profile-col">
+            <div class="gramora-avatar-ring">
+              <div id="gramoraAvatar" class="gramora-avatar-circle">T</div>
+            </div>
+            <div id="gramoraName" class="gramora-user-name">TEMUR</div>
+            <div id="gramoraRank" class="gramora-user-rank">Havaskor • 1000 ELO</div>
+          </div>
+
+          <!-- Right: Big Coin Balance + 3D Coin + Wooden DEPOZIT Button -->
+          <div class="gramora-currency-col">
+            <div class="gramora-balance-row" onclick="openDepositView()">
+              <span id="gramoraCoins" class="gramora-coin-num">50</span>
+              <div class="gramora-coin-3d"><span>G</span></div>
+            </div>
+
+            <button class="gramora-deposit-btn" onclick="openDepositView()">
+              <span class="dep-leaf left">🌿</span>
+              <span class="dep-coin-ico">🪙<small class="dep-arrow">⬇</small></span>
+              <span class="dep-text">DEPOZIT</span>
+              <span class="dep-chevron">›</span>
+            </button>
+
+            <div class="gramora-mini-pills">
+              <button class="gramora-mini-pill" onclick="openDepositView()">⭐ <span id="gramoraStars">0</span></button>
+              <button id="gramoraSoundBtn" class="gramora-mini-pill" onclick="toggleSoundFx()" title="Ovozni yoqish/o'chirish">🔊</button>
+              <button id="gramoraLangBtn" class="gramora-mini-pill" onclick="openLangModal()">🇺🇿 UZ</button>
+              <button id="gramoraAdminBtn" class="gramora-mini-pill" style="display:none; border-color:#f5c451; color:#fde08d;" onclick="switchNav('admin')">👑 Admin</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Top: Online Pill -->
+        <div class="gramora-online-wrap">
+          <div id="liveOnlineBanner" class="gramora-online-pill">
+            <span class="gramora-online-dot"></span>
+            <span id="liveOnlineCountText">1 online</span>
+            <span id="liveInMatchText" style="display:none;">0</span>
+            <span id="liveTotalUsersText" style="display:none;">0</span>
+          </div>
+        </div>
+
+        <!-- Middle Area: Left & Right Floating 3D Wooden Icon Columns -->
+        <div class="gramora-middle-hud">
+          <!-- Left Column: Vazifalar, Reyting, Do'kon -->
+          <div class="gramora-side-col left">
+            <button class="gramora-wood-item" onclick="switchNav('tasks')">
+              <div class="gramora-wood-box">
+                <span class="wood-leaf tl">🌿</span>
+                <svg class="wood-svg" viewBox="0 0 24 24" fill="none">
+                  <rect x="5" y="3" width="14" height="18" rx="2" stroke="#451a03" stroke-width="2" fill="#d97706" fill-opacity="0.25"/>
+                  <path d="M9 3h6v3H9z" fill="#78350f"/>
+                  <path d="M8 10l1.5 1.5L12 9M14 10h3M8 14l1.5 1.5L12 13M14 14h3M8 18h9" stroke="#451a03" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="gramora-wood-label" data-i18n="navTasks">VAZIFALAR</span>
+            </button>
+
+            <button class="gramora-wood-item" onclick="switchNav('rating')">
+              <div class="gramora-wood-box">
+                <span class="wood-leaf br">🌿</span>
+                <svg class="wood-svg" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l1.8 3.6 4 .6-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4-2.9-2.8 4-.6L12 2z" fill="#fbbf24" stroke="#451a03" stroke-width="1.5"/>
+                  <path d="M3 20h18v-5h-6v-3H9v3H3v5z" fill="#b45309" stroke="#451a03" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="gramora-wood-label" data-i18n="navRating">REYTING</span>
+            </button>
+
+            <button id="lobbyTileShop" class="gramora-wood-item" onclick="switchNav('shop')">
+              <div class="gramora-wood-box">
+                <span class="wood-leaf tl">🌿</span>
+                <svg class="wood-svg" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 9l2-5h14l2 5" fill="#d97706" stroke="#451a03" stroke-width="1.8" stroke-linejoin="round"/>
+                  <path d="M3 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3" stroke="#451a03" stroke-width="1.8"/>
+                  <rect x="5" y="12" width="14" height="8" fill="#b45309" fill-opacity="0.35" stroke="#451a03" stroke-width="1.8"/>
+                  <rect x="9" y="15" width="6" height="5" fill="#451a03"/>
+                </svg>
+              </div>
+              <span class="gramora-wood-label" data-i18n="navShop">DO'KON</span>
+            </button>
+          </div>
+
+          <!-- Right Column: Do'st bilan, Turnirlar, Pul yechish -->
+          <div class="gramora-side-col right">
+            <button id="btnLobbyChallenge" class="gramora-wood-item" onclick="shareDirectChallenge()">
+              <div class="gramora-wood-box">
+                <span class="wood-leaf tr">🌿</span>
+                <svg class="wood-svg" viewBox="0 0 24 24" fill="none">
+                  <circle cx="9" cy="8" r="3.2" fill="#fcd34d" stroke="#451a03" stroke-width="1.7"/>
+                  <circle cx="16" cy="9" r="2.6" fill="#fbbf24" stroke="#451a03" stroke-width="1.7"/>
+                  <path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2" fill="#f59e0b" stroke="#451a03" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M14.5 19c0-2.2 1.8-4 4-4s3.5 1.8 3.5 4" stroke="#451a03" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span class="gramora-wood-label">DO'ST<br/>BILAN</span>
+            </button>
+
+            <button class="gramora-wood-item" onclick="switchNav('tournaments')">
+              <div class="gramora-wood-box">
+                <span class="wood-leaf bl">🌿</span>
+                <svg class="wood-svg" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 4h10v5a5 5 0 01-10 0V4z" fill="#fbbf24" stroke="#451a03" stroke-width="1.8"/>
+                  <path d="M7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3M12 14v4M8 20h8" stroke="#451a03" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span class="gramora-wood-label" data-i18n="navTournaments">TURNIRLAR</span>
+            </button>
+
+            <button class="gramora-wood-item" onclick="openCashoutView()">
+              <div class="gramora-wood-box">
+                <span class="wood-leaf br">🌿</span>
+                <svg class="wood-svg" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="6" width="18" height="12" rx="2" fill="#84cc16" fill-opacity="0.45" stroke="#451a03" stroke-width="1.8"/>
+                  <circle cx="12" cy="12" r="3" fill="#fef08a" stroke="#451a03" stroke-width="1.6"/>
+                  <path d="M6 9h.01M18 15h.01" stroke="#451a03" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span class="gramora-wood-label">PUL<br/>YECHISH</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Area: Game Mode Icons + Giant Wooden PLAY Board + Gift Box -->
+        <div class="gramora-bottom-dock">
+          <!-- Game Icons Row (Shashka, Shaxmat, Zakovat, Ludo, AI Mashq, Kubok) -->
+          <div class="gramora-games-row">
+            <div id="cardCheckers" class="gramora-game-tile selected" onclick="selectGameMode('checkers')">
+              <div class="gramora-tile-board checkers-mini">
+                <div class="mc-cell light"><span class="mc-piece white"></span></div>
+                <div class="mc-cell dark"></div>
+                <div class="mc-cell dark"></div>
+                <div class="mc-cell light"><span class="mc-piece black"></span></div>
+              </div>
+              <span class="gramora-tile-name" data-i18n="gameCheckers">Shashka</span>
+            </div>
+
+            <div id="cardChess" class="gramora-game-tile" onclick="selectGameMode('chess')">
+              <div class="gramora-tile-board chess-mini">
+                <div class="mc-cell light"></div>
+                <div class="mc-cell dark"><span class="mc-chess-ico dark">♞</span></div>
+                <div class="mc-cell dark"><span class="mc-chess-ico light">♜</span></div>
+                <div class="mc-cell light"></div>
+              </div>
+              <span class="gramora-tile-name" data-i18n="gameChess">Shaxmat</span>
+            </div>
+
+            <div id="cardZakovat" class="gramora-game-tile" onclick="selectGameMode('zakovat'); openPlaySetupModal();">
+              <div class="gramora-tile-board" style="background:linear-gradient(135deg,#7c3aed,#4c1d95); border-color:#c4b5fd; display:flex; align-items:center; justify-content:center; position:relative;">
+                <span style="font-size:26px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));">🧠</span>
+                <span class="mini-tag" style="background:#f59e0b; color:#1c1917;">4P</span>
+              </div>
+              <span class="gramora-tile-name">Zakovat</span>
+            </div>
+
+            <div id="cardLudo" class="gramora-game-tile" onclick="selectGameMode('ludo'); openPlaySetupModal();">
+              <div class="gramora-tile-board" style="background:linear-gradient(135deg,#dc2626,#2563eb); border-color:#fde047; display:flex; align-items:center; justify-content:center; position:relative;">
+                <span style="font-size:26px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));">🎲</span>
+                <span class="mini-tag" style="background:#10b981; color:#fff;">4P</span>
+              </div>
+              <span class="gramora-tile-name">Ludo</span>
+            </div>
+
+            <div class="gramora-game-tile" onclick="startPracticeVsBot()">
+              <div class="gramora-tile-board bot-mini">
+                <span style="font-size:26px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));">🤖</span>
+                <span class="mini-tag">0 G</span>
+              </div>
+              <span class="gramora-tile-name">AI Mashq</span>
+            </div>
+
+            <div id="cardKubok" class="gramora-game-tile" style="display:none;" onclick="switchNav('tournaments')">
+              <div class="gramora-tile-board tour-mini">
+                <span style="font-size:26px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));">🏆</span>
+              </div>
+              <span class="gramora-tile-name">Kubok</span>
+            </div>
+          </div>
+
+          <!-- Giant Wooden PLAY Plank & Floating Daily Gift Button -->
+          <div class="gramora-play-wrap">
+            <button class="gramora-wood-play-btn" onclick="openPlaySetupModal()">
+              <span class="play-leaf tl">🌿</span>
+              <span class="play-leaf tr">🌿</span>
+              <span class="play-stone bl">🪨</span>
+              <span class="play-stone br">🪨</span>
+              <span class="play-engraved-text">PLAY</span>
+            </button>
+
+            <button class="gramora-gift-fab" onclick="openDailyBonusModal()" title="Kunlik Bonus">
+              <span class="gift-ico">🎁</span>
+              <span id="giftBadgeDot" class="gift-badge-dot"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Play Setup Modal (Stavka & Bot Difficulty Selector when PLAY is clicked) -->
+      <div id="playSetupModal" class="modal-overlay">
+        <div class="modal-card" style="max-width:380px; text-align:left; border:2px solid #d97706; background:linear-gradient(165deg,#132a1c,#09140e);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="font-size:18px; color:var(--gold-bright); margin:0;">⚔️ O'yin Sozlamalari</h3>
+            <button onclick="closePlaySetupModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+          </div>
+
+          <!-- Selected Game Pill -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+            <button id="modalBtnCheckers" class="sub-tab-btn active" onclick="selectGameMode('checkers')">⚫⚪ Shashka</button>
+            <button id="modalBtnChess" class="sub-tab-btn" onclick="selectGameMode('chess')">♔♕ Shaxmat</button>
+            <button id="modalBtnZakovat" class="sub-tab-btn" onclick="selectGameMode('zakovat')">🧠 Zakovat (4P)</button>
+            <button id="modalBtnLudo" class="sub-tab-btn" onclick="selectGameMode('ludo')">🎲 Ludo (4P)</button>
+          </div>
+
+          <!-- Stake Tiers -->
+          <div class="section-label" data-i18n="selectStakeTitle">Stavka miqdorini tanlang</div>
+          <div class="stakes-grid">
+            <div class="stake-card selected" data-stake="2" onclick="selectStake(2)">
+              <div class="stake-val">2 G</div>
+              <div class="stake-prize">+3 G 🏆</div>
+            </div>
+            <div class="stake-card" data-stake="5" onclick="selectStake(5)">
+              <div class="stake-val">5 G</div>
+              <div class="stake-prize">+8 G 🏆</div>
+            </div>
+            <div class="stake-card" data-stake="15" onclick="selectStake(15)">
+              <div class="stake-val">15 G</div>
+              <div class="stake-prize">+25 G 🏆</div>
+            </div>
+            <div class="stake-card" data-stake="50" onclick="selectStake(50)">
+              <div class="stake-val">50 G</div>
+              <div class="stake-prize">+85 G 🏆</div>
+            </div>
+          </div>
+
+          <!-- Bot Difficulty Selector -->
+          <div class="section-label" data-i18n="botDifficultyTitle">🤖 Bot darajasi (AI Level)</div>
+          <div class="bot-diff-grid">
+            <div class="bot-diff-card" data-diff="easy" onclick="selectBotDifficulty('easy')">
+              <span class="diff-icon">🟢</span>
+              <div class="diff-name" data-i18n="diffEasy">Oddiy</div>
+              <div class="diff-sub" data-i18n="diffEasySub">Boshlang'ich</div>
+            </div>
+            <div class="bot-diff-card selected" data-diff="medium" onclick="selectBotDifficulty('medium')">
+              <span class="diff-icon">🟡</span>
+              <div class="diff-name" data-i18n="diffMedium">O'rtacha</div>
+              <div class="diff-sub" data-i18n="diffMediumSub">Standart</div>
+            </div>
+            <div class="bot-diff-card" data-diff="hard" onclick="selectBotDifficulty('hard')">
+              <span class="diff-icon">🔴</span>
+              <div class="diff-name" data-i18n="diffHard">Kuchli</div>
+              <div class="diff-sub" data-i18n="diffHardSub">Usta (Pro)</div>
+            </div>
+          </div>
+
+          <button class="btn-play-main" onclick="closePlaySetupModal(); startMatchmaking();" data-i18n="playNowBtn">
+            O'YINNI BOSHLASH
+          </button>
+          <button class="btn-play-bot-practice" onclick="closePlaySetupModal(); startPracticeVsBot();" data-i18n="practiceVsBotBtn">
+            🤖 Bot bilan mashq qilish (0 G)
+          </button>
+        </div>
+      </div>
+
+      <!-- Daily Bonus Modal (Opened by Bottom-Right 🎁 Gift Button) -->
+      <div id="dailyBonusModal" class="modal-overlay">
+        <div class="modal-card" style="max-width:350px; border:2px solid var(--gold);">
+          <div style="font-size:48px; margin-bottom:6px;">🎁</div>
+          <h3 style="color:var(--gold-bright); margin-bottom:6px;" data-i18n="dailyTitle">Kunlik Bonus (Streak)</h3>
+          <p id="dailySubText" style="font-size:13px; color:var(--text-muted); margin-bottom:16px;" data-i18n="dailySub">
+            Har kuni kiring va bepul tanga oling!
+          </p>
+          <button id="claimDailyBtn" class="btn-play-main" style="padding:13px; font-size:15px; margin-bottom:8px;" onclick="claimDailyBonus()" data-i18n="claimBtn">
+            🎁 Bonusni Olish
+          </button>
+          <button class="btn-resign" style="width:100%; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.15); color:var(--text-muted);" onclick="closeDailyBonusModal()">
+            Yopish
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Match Screen -->
+      <div id="matchPanel" class="match-container">
+        <div id="matchPrizeLabel" class="match-prize-pill">G'OLIBGA +8 G 🪙</div>
+
+        <!-- Opponent Bar -->
+        <div id="oppBar" class="player-bar">
+          <div class="profile-pill">
+            <div id="oppAvatar" class="avatar-circle" style="background: linear-gradient(135deg,#10b981,#047857);">R</div>
+            <div class="profile-meta">
+              <div class="profile-name-row">
+                <span id="oppName" class="profile-name">Raqib</span>
+                <span id="oppTypeBadge" class="player-type-badge badge-human">👤 Jonli</span>
+              </div>
+              <span id="oppElo" class="profile-elo">1000 ELO</span>
+            </div>
+          </div>
+          <div id="oppEmojiSlot" style="font-size: 22px;"></div>
+          <div id="oppTimer" class="timer-box">0:45</div>
+        </div>
+
+        <!-- 8x8 Interactive Board -->
+        <div class="board-frame">
+          <div id="boardGrid" class="board-grid"></div>
+        </div>
+
+        <div id="turnStatusBadge" class="turn-badge">🟢 SIZNING NAVBATINGIZ</div>
+
+        <!-- Player Bar -->
+        <div id="myBar" class="player-bar">
+          <div class="profile-pill">
+            <div id="myMatchAvatar" class="avatar-circle">T</div>
+            <div class="profile-meta">
+              <div class="profile-name-row">
+                <span id="myMatchName" class="profile-name">Siz</span>
+                <span id="myTypeBadge" class="player-type-badge badge-human">👤 Siz</span>
+              </div>
+              <span id="myMatchElo" class="profile-elo">1000 ELO</span>
+            </div>
+          </div>
+          <div id="myEmojiSlot" style="font-size: 22px;"></div>
+          <div id="myTimer" class="timer-box">0:45</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="match-controls">
+          <div class="emoji-picker-container">
+            <button id="btnEmojiToggle" class="btn-emoji-toggle" onclick="toggleEmojiPicker(event)" title="Stiker yuborish">
+              <span class="emoji-ico">😀</span>
+              <span class="emoji-txt">Stiker</span>
+            </button>
+            <div id="emojiPickerPopup" class="emoji-picker-popup">
+              <div class="emoji-popup-header">
+                <span>Stiker tanlang</span>
+                <button class="emoji-popup-close" onclick="closeEmojiPicker(event)">✕</button>
+              </div>
+              <div class="emoji-grid">
+                <button class="emoji-item-btn" onclick="pickEmoji('🤝')">🤝</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('🔥')">🔥</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('😎')">😎</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('⚡')">⚡</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('👏')">👏</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('🤔')">🤔</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('🎯')">🎯</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('👑')">👑</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('😱')">😱</button>
+                <button class="emoji-item-btn" onclick="pickEmoji('🎉')">🎉</button>
+              </div>
+            </div>
+          </div>
+          <button id="btnMatchHint" class="btn-hint" onclick="requestMatchHint()" title="Grossmeyster maslahati">
+            💡 <span data-i18n="hintBtn">Maslahat</span>
+          </button>
+          <button class="btn-resign" onclick="resignMatch()" data-i18n="resignBtn">🏳 Taslim bo'lish</button>
+        </div>
+      </div>
+
+      <!-- 🧠 ZAKOVAT ARENA PANEL (4-Player Live Quiz Screen) -->
+      <div id="zakovatPanel" class="match-container" style="display:none; flex-direction:column; gap:10px; padding:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div id="zkPrizeBadge" class="match-prize-pill" style="margin:0;">🥇 1-O'RIN: +12 G | 🥈 2-O'RIN: +5 G</div>
+          <div id="zkTimerBadge" style="background:rgba(239,68,68,0.2); border:1.5px solid #ef4444; color:#fca5a5; padding:5px 12px; border-radius:20px; font-weight:800; font-size:14px;">⏱ 12s</div>
+        </div>
+
+        <!-- 4-Player Live Scoreboard Strip -->
+        <div id="zkPlayersBoard" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%;"></div>
+
+        <!-- Progress & Category -->
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; font-size:12px;">
+          <span id="zkCategoryBadge" style="background:rgba(124,58,237,0.3); border:1px solid #a78bfa; color:#ddd6fe; padding:3px 10px; border-radius:12px; font-weight:700;">🧠 Mantiq</span>
+          <span id="zkProgressText" style="color:var(--gold-bright); font-weight:800;">Savol 1 / 8</span>
+        </div>
+
+        <!-- Question Box -->
+        <div class="glass-card" style="width:100%; padding:16px 14px; text-align:center; background:linear-gradient(160deg,rgba(30,27,75,0.9),rgba(15,23,42,0.95)); border:1.5px solid rgba(167,139,250,0.45); min-height:95px; display:flex; align-items:center; justify-content:center;">
+          <div id="zkQuestionText" style="font-size:15px; font-weight:700; line-height:1.45; color:#fff; white-space:pre-line;">Savol yuklanmoqda...</div>
+        </div>
+
+        <!-- 4 Options Grid -->
+        <div id="zkOptionsGrid" style="display:flex; flex-direction:column; gap:8px; width:100%;"></div>
+
+        <!-- Feedback Banner -->
+        <div id="zkStatusBanner" style="font-size:13px; font-weight:800; text-align:center; min-height:20px; color:var(--gold-bright);"></div>
+
+        <!-- Lifelines & Exit -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; margin-top:4px;">
+          <button id="btnZkFifty" class="btn-hint" onclick="useZakovatFifty()" style="padding:10px; font-size:13px;">💡 50/50 Yordam</button>
+          <button class="btn-resign" onclick="leaveZakovatMatch()" style="padding:10px; font-size:13px;">🏳 Chiqish</button>
+        </div>
+      </div>
+
+      <!-- 🎲 LUDO KING ARENA PANEL (Authentic 15x15 Ludo King Design) -->
+      <div id="ludoPanel" class="match-container ludo-king-screen" style="display:none;">
+        <!-- Top Bar: Prize, Turn Status & Exit -->
+        <div class="lk-top-bar">
+          <div id="ludoPrizeBadge" class="lk-prize-chip">🏆 +17 G</div>
+          <div id="ludoEventBanner" class="lk-event-text">🎲 Zarni bosing!</div>
+          <button class="lk-exit-btn" onclick="leaveLudoMatch()">🏳 Chiqish</button>
+        </div>
+
+        <!-- 15x15 Ludo King Board -->
+        <div class="lk-board-outer">
+          <div id="ludoGrid" class="lk-board-grid"></div>
+        </div>
+
+        <!-- Bottom Ludo King Dock (You | 3D Red Dice | Com) -->
+        <div class="lk-bottom-dock">
+          <div id="lkDockLeft" class="lk-dock-side left">
+            <div class="lk-dock-pin red"></div>
+            <span id="lkYouLabel" class="lk-dock-name">You</span>
+          </div>
+
+          <button id="btnLudoRoll" class="lk-dice-Well" onclick="rollLudoDice()" title="Zarni tashlash">
+            <div id="ludoDice3d" class="lk-red-dice">
+              <div id="ludoDicePips" class="lk-dice-pips"></div>
+            </div>
+          </button>
+
+          <div id="lkDockRight" class="lk-dock-side right">
+            <span id="lkOppLabel" class="lk-dock-name">Com</span>
+            <div id="lkOppPin" class="lk-dock-pin yellow"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TOURNAMENTS VIEW -->
+    <section id="view-tournaments" class="view-section">
+      <div class="gramora-subpage-header">
+        <div class="gsh-left">
+          <button class="gsh-back-btn" onclick="switchNav('arena')" aria-label="Orqaga">‹</button>
+          <span class="gsh-icon">🏆</span>
+          <h2 class="gsh-title" data-i18n="tournamentsTitle">TURNIRLAR</h2>
+        </div>
+        <div class="gsh-balance-pill" onclick="openDepositView()">
+          <span class="gsh-coin-val user-coins-sync">50</span>
+          <span class="gsh-coin-3d">G</span>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: #e7cfa1; margin-bottom: 14px;" data-i18n="tournamentsSub">
+        Turnirlarda qatnashing va katta sovrin fondini yutib oling!
+      </p>
+      <div id="tournamentsList"></div>
+    </section>
+
+    <!-- 3. TASKS & VIRAL REFERRAL VIEW -->
+    <section id="view-tasks" class="view-section">
+      <div class="gramora-subpage-header">
+        <div class="gsh-left">
+          <button class="gsh-back-btn" onclick="switchNav('arena')" aria-label="Orqaga">‹</button>
+          <span class="gsh-icon">📋</span>
+          <h2 class="gsh-title" data-i18n="navTasks">VAZIFALAR</h2>
+        </div>
+        <div class="gsh-balance-pill" onclick="openDepositView()">
+          <span class="gsh-coin-val user-coins-sync">50</span>
+          <span class="gsh-coin-3d">G</span>
+        </div>
+      </div>
+
+      <!-- Adsgram Official Task Component (Only shown when task is loaded) -->
+      <div id="adsgramTaskContainer" style="display:none; margin-bottom: 10px;">
+        <adsgram-task id="adsgramTaskEl" data-block-id="task-58978" style="display:block; width:100%; box-sizing:border-box;">
+          <p slot="reward" style="margin:0; font-weight:700; color:#fde047;">+10 G</p>
+          <div slot="button" class="gramora-parchment-btn" style="padding:6px 14px; font-size:12px; cursor:pointer;">BOSHLASH</div>
+          <div slot="claim" class="gramora-parchment-btn" style="padding:6px 14px; font-size:12px; background:linear-gradient(180deg,#10b981,#059669); color:#fff; cursor:pointer;">OLISH</div>
+          <div slot="done" class="gramora-parchment-btn" style="padding:6px 14px; font-size:12px; opacity:0.6; pointer-events:none;">BAJARILDI</div>
+        </adsgram-task>
+      </div>
+
+      <!-- Free Tasks & AdsGram (Top rows just like Gramora) -->
+      <div id="tasksList"></div>
+
+      <!-- Do'st Taklif Qilish Card (Gramora Row + Stats) -->
+      <div class="gramora-task-card" style="flex-direction: column; align-items: stretch; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+            <div class="gramora-task-ico">👥</div>
+            <div style="flex: 1; min-width: 0;">
+              <div class="gramora-task-title" data-i18n="inviteTitle">DO'ST TAKLIF QILISH</div>
+              <div class="gramora-task-sub">
+                <span>+5</span> <span class="gsh-coin-3d sm">G</span> <span>• har do'st uchun</span>
+              </div>
+            </div>
+          </div>
+          <button class="gramora-parchment-btn" style="flex-shrink: 0; padding: 9px 12px; font-size: 11px !important;" onclick="shareReferralTelegram()">ULASHISH</button>
+        </div>
+
+        <div class="dual-balance-grid" style="margin-bottom: 0;">
+          <div class="bal-box">
+            <span class="lbl" data-i18n="invitedCount">Taklif qilinganlar</span>
+            <span id="refCountVal" class="val">0</span>
+          </div>
+          <div class="bal-box">
+            <span class="lbl" data-i18n="inviteEarned">Referal daromad</span>
+            <span id="refEarnedVal" class="val">0 G</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; width: 100%;">
+          <button class="gramora-parchment-btn" style="width: 100%; min-width: 0; padding: 10px 8px; font-size: 11px !important;" onclick="shareReferralTelegram()" data-i18n="shareTgBtn">
+            ✈️ Telegramda ulashish
+          </button>
+          <button class="lang-btn" style="width: 100%; min-width: 0; padding: 10px 8px; border-radius: 12px; font-size: 11px;" onclick="copyReferralLink()" data-i18n="copyLinkBtn">
+            📋 Nusxalash
+          </button>
+        </div>
+      </div>
+
+      <!-- Referral Milestones Track -->
+      <div id="refMilestonesBlock" class="glass-card gold-border" style="margin-top:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <h3 style="font-size:15px; color:#fff8e7; font-family:Georgia,serif; margin:0;">🎯 BOSQICHLI SOVG'ALAR</h3>
+          <span id="refMilestoneCountLabel" style="font-size:12px; color:#fde047; font-weight:800;">0 Do'st</span>
+        </div>
+        <p style="font-size:11px; color:#e7cfa1; margin-bottom:10px;">Do'stlaringizni taklif qiling va katta bonuslar hamda VIP statusni oching!</p>
+        <div id="milestonesList" class="milestones-container"></div>
+      </div>
+    </section>
+
+    <!-- 4. CONVERT & PAYOUT VIEW -->
+    <section id="view-convert" class="view-section">
+      <div class="gramora-subpage-header">
+        <div class="gsh-left">
+          <button class="gsh-back-btn" onclick="switchNav('arena')" aria-label="Orqaga">‹</button>
+          <span class="gsh-icon">💵</span>
+          <h2 class="gsh-title" data-i18n="convertTitle">PUL YECHISH & DEPOZIT</h2>
+        </div>
+        <div class="gsh-balance-pill">
+          <span class="gsh-coin-val user-coins-sync">50</span>
+          <span class="gsh-coin-3d">G</span>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: #e7cfa1; margin-bottom: 12px;" data-i18n="convertSub">
+        Yutib olingan tangalarni Stars, TON yoki Karta (UZS) ga ayirboshlang
+      </p>
+
+      <!-- Dual Balance Info -->
+      <div class="dual-balance-grid">
+        <div class="bal-box">
+          <span class="lbl" data-i18n="bonusBalLabel">Bonus Balans (O'yin uchun)</span>
+          <span id="convBonusVal" class="val" style="color: #93c5fd;">50 G</span>
+        </div>
+        <div class="bal-box">
+          <span class="lbl" data-i18n="earnedBalLabel">Yutib olingan (Convert uchun)</span>
+          <span id="convEarnedVal" class="val" style="color: #6ee7b7;">0 G</span>
+        </div>
+      </div>
+
+      <!-- Anti-Cheat Trust Score Bar -->
+      <div class="glass-card" style="padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 12px; color: var(--text-muted);" data-i18n="trustScoreLabel">🛡 Anti-Cheat Ishonch Balli</span>
+        <span id="convTrustVal" style="font-weight: 800; color: #10b981; font-size: 14px;">100% (Tasdiqlangan)</span>
+      </div>
+
+      <!-- Sub-tabs: Cashout vs Topup -->
+      <div class="sub-tabs">
+        <button id="subTabCashout" class="sub-tab-btn active" onclick="switchConvertSubTab('cashout')" data-i18n="tabCashout">
+          🪙 Tangani Ayirboshlash
+        </button>
+        <button id="subTabTopup" class="sub-tab-btn" onclick="switchConvertSubTab('topup')" data-i18n="tabTopup">
+          ⭐ Stars -> Tanga
+        </button>
+      </div>
+
+      <!-- Sub-panel 1: Earned Coins -> Stars / TON -->
+      <div id="panelCashout" class="glass-card gold-border">
+        <!-- Convert Qualification & Daily Limit Box -->
+        <div id="convRequirementsBox" style="background:rgba(0,0,0,0.28); border:1px solid rgba(245,196,81,0.3); border-radius:12px; padding:10px 12px; margin-bottom:12px; font-size:12px;"></div>
+
+        <div class="form-group">
+          <label data-i18n="selectTargetLabel">Qaysi valyutaga o'tkazasiz?</label>
+          <div class="target-pills" style="grid-template-columns: 1fr 1fr;">
+            <div class="target-pill selected" data-target="stars" onclick="selectConvertTarget('stars')">
+              ⭐ Telegram Stars<br /><small style="color:var(--text-muted)">100 G = 1 ⭐</small>
+            </div>
+            <div class="target-pill" data-target="ton" onclick="selectConvertTarget('ton')">
+              💎 TON (Wallet)<br /><small style="color:var(--text-muted)">1000 G = 0.05 TON</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="amountCoinsLabel">Miqdor (Min: 1000 G • Kunlik limit: 1000 G)</label>
+          <input id="convAmountInput" type="number" class="form-input" value="1000" min="1000" max="1000" step="100" oninput="updateConvertPreview()" />
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="destInputLabel">Qabul qiluvchi (@username yoki TON hamyon manzili)</label>
+          <input id="convDestInput" type="text" class="form-input" placeholder="Masalan: @username yoki UQ... TON manzil" data-i18n-placeholder="destPlaceholder" />
+        </div>
+
+        <div class="receive-preview">
+          <span data-i18n="youWillReceive">Siz qabul qilasiz:</span>
+          <strong id="convReceiveVal" style="color: var(--gold-bright); font-size: 15px;">10 ⭐ Stars</strong>
+        </div>
+
+        <button class="btn-play-main" style="padding: 13px; font-size: 15px;" onclick="submitConversion()" data-i18n="submitConvertBtn">
+          Konvertatsiya qilish
+        </button>
+      </div>
+
+      <!-- Sub-panel 2: Stars -> Coins & Buy Stars -->
+      <div id="panelTopup" class="glass-card gold-border" style="display: none;">
+        <h3 style="font-size: 15px; color: var(--gold-bright); margin-bottom: 4px;" data-i18n="starsToCoinsTitle">
+          ⭐ Stars'ni O'yin Tangasiga Aylantirish
+        </h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;" data-i18n="starsToCoinsDesc">
+          Kurs: 1 ⭐ Star = 15 G Tanga (0% komissiya)
+        </p>
+
+        <div class="form-group">
+          <input id="starsToCoinsInput" type="number" class="form-input" value="10" min="1" oninput="updateStarsToCoinsPreview()" />
+        </div>
+
+        <div class="receive-preview">
+          <span data-i18n="youWillReceive">Siz qabul qilasiz:</span>
+          <strong id="starsToCoinsPreviewVal" style="color: var(--gold-bright);">+150 G</strong>
+        </div>
+
+        <button class="btn-gold-sm" style="width: 100%; padding: 12px; font-size: 14px; margin-bottom: 16px;" onclick="convertStarsToCoins()" data-i18n="convertStarsNowBtn">
+          Tangaga aylantirish
+        </button>
+
+        <div class="section-label" data-i18n="buyStarsHeader">⚡ Telegram Stars (⭐) Hisobni To'ldirish</div>
+        <div class="target-pills">
+          <div class="target-pill" onclick="buyStarsPackage(10)">
+            ⭐ +10 Stars<br /><small style="color:#6ee7b7">150 G</small>
+          </div>
+          <div class="target-pill" onclick="buyStarsPackage(25)">
+            ⭐ +25 Stars<br /><small style="color:#6ee7b7">375 G</small>
+          </div>
+          <div class="target-pill" onclick="buyStarsPackage(50)">
+            ⭐ +50 Stars<br /><small style="color:#6ee7b7">750 G</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="section-label" style="margin-top: 14px;" data-i18n="historyHeader">📜 Oxirgi Konvertatsiyalar</div>
+      <div id="conversionsHistoryList"></div>
+    </section>
+
+    <!-- 5. LEADERBOARD VIEW -->
+    <section id="view-rating" class="view-section">
+      <div class="gramora-subpage-header">
+        <div class="gsh-left">
+          <button class="gsh-back-btn" onclick="switchNav('arena')" aria-label="Orqaga">‹</button>
+          <span class="gsh-icon">🏆</span>
+          <h2 class="gsh-title" data-i18n="navRating">REYTING</h2>
+        </div>
+        <div class="gsh-balance-pill" onclick="openDepositView()">
+          <span class="gsh-coin-val user-coins-sync">50</span>
+          <span class="gsh-coin-3d">G</span>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: #e7cfa1; margin-bottom: 12px;" data-i18n="ratingSub">
+        ELO reytingi va Anti-Cheat tomonidan tasdiqlangan o'yinchilar
+      </p>
+
+      <!-- O'yinlar bo'yicha Leaderboard Tablari -->
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:14px;">
+        <button id="lbTab-checkers" class="gramora-parchment-btn lb-tab-btn" style="padding:8px 4px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="setLeaderboardTab('checkers')">⚪ Shashka</button>
+        <button id="lbTab-chess" class="gramora-parchment-btn lb-tab-btn" style="padding:8px 4px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="setLeaderboardTab('chess')">♔ Shaxmat</button>
+        <button id="lbTab-zakovat" class="gramora-parchment-btn lb-tab-btn" style="padding:8px 4px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="setLeaderboardTab('zakovat')">🧠 Zakovat</button>
+        <button id="lbTab-ludo" class="gramora-parchment-btn lb-tab-btn" style="padding:8px 4px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="setLeaderboardTab('ludo')">🎲 Ludo</button>
+      </div>
+
+      <div id="leaderboardList"></div>
+    </section>
+
+    <!-- 6. ADMIN PANEL VIEW -->
+    <section id="view-admin" class="view-section">
+      <div class="gramora-subpage-header">
+        <div class="gsh-left">
+          <button class="gsh-back-btn" onclick="switchNav('arena')" aria-label="Orqaga">‹</button>
+          <span class="gsh-icon">👑</span>
+          <h2 class="gsh-title">ADMIN PANEL</h2>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <a href="/admin.html" class="gramora-parchment-btn" style="text-decoration:none; padding:7px 11px; font-size:11px;">🖥️ Web</a>
+          <button class="gramora-parchment-btn" style="padding:7px 11px;" onclick="refreshAdminState()">🔄</button>
+        </div>
+      </div>
+
+      <!-- Admin Sub-Navigation -->
+      <div class="sub-tabs" style="grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 12px;">
+        <button class="sub-tab-btn active" data-adm="overview" onclick="switchAdminTab('overview')">📊 Umumiy</button>
+        <button class="sub-tab-btn" data-adm="convs" onclick="switchAdminTab('convs')">🔄 Yechish</button>
+        <button class="sub-tab-btn" data-adm="users" onclick="switchAdminTab('users')">👥 Userlar</button>
+        <button class="sub-tab-btn" data-adm="tasks" onclick="switchAdminTab('tasks')">📢 Kanal</button>
+        <button class="sub-tab-btn" data-adm="tours" onclick="switchAdminTab('tours')">🏆 Turnir</button>
+      </div>
+
+      <!-- Admin Tab 1: Overview, Settings & Broadcast -->
+      <div id="adm-overview" class="adm-pane">
+        <div class="dual-balance-grid" id="admStatsGrid"></div>
+
+        <!-- Broadcast Card -->
+        <div class="glass-card gold-border">
+          <h3 style="font-size:15px; color:var(--gold-bright); margin-bottom:6px;">📨 Bot, Guruh va Kanallarga Xabar Yuborish</h3>
+          <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">
+            Xabaringizni bot a'zolariga (shaxsiy), bot a'zo bo'lgan guruhlarga hamda rasmiy kanalga bir vaqtda yuboring:
+          </p>
+          <div class="form-group">
+            <textarea id="admBroadcastText" rows="4" class="form-input" style="resize:vertical;" placeholder="Xabar matnini yozing (HTML teglar ishlaydi: <b>Qalin</b>, <i>Kursiv</i>)..."></textarea>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px; font-size:12px;">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input id="admBcUsers" type="checkbox" checked /> 👤 Bot a'zolariga
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input id="admBcGroups" type="checkbox" checked /> 💬 A'zo guruhlarga
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input id="admBcChannels" type="checkbox" checked /> 📢 Rasmiy kanalga
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input id="admBcBtn" type="checkbox" checked /> 🎮 Tugma qo'shish
+            </label>
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>Tugma yozuvi (ixtiyoriy)</label>
+            <input id="admBcBtnText" type="text" class="form-input" value="🎮 Arenaga Kirish" />
+          </div>
+          <button class="btn-gold-sm" style="width:100%; padding:11px;" onclick="sendAdminBroadcast()">🚀 Xabarni Yuborish</button>
+
+          <div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
+            <div style="font-size:12px; font-weight:800; color:#fde047; margin-bottom:6px;">💬 Bot Ulangan Guruh va Kanallar:</div>
+            <div id="admBotChatsList" style="margin-bottom:8px;"></div>
+            <div style="display:grid; grid-template-columns:1.4fr 1fr auto; gap:6px;">
+              <input id="admNewChatTarget" type="text" class="form-input" placeholder="@GuruhYokiKanal yoki -100..." style="padding:7px 9px; font-size:11px;" />
+              <select id="admNewChatType" class="form-input" style="padding:7px 6px; font-size:11px;">
+                <option value="supergroup">💬 Guruh</option>
+                <option value="channel">📢 Kanal</option>
+              </select>
+              <button class="btn-gold-sm" style="padding:7px 10px; font-size:11px;" onclick="addAdminBotChat()">➕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Economy & Anti-Cheat Settings -->
+        <div class="glass-card">
+          <h3 style="font-size:15px; color:var(--gold-bright); margin-bottom:10px;">⚙️ O'yin, Iqtisodiyot va Convert Limitlari</h3>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" class="form-group">
+            <div>
+              <label>Komissiya (Rake %)</label>
+              <input id="admSetRake" type="number" class="form-input" value="15" min="0" max="35" />
+            </div>
+            <div>
+              <label>Yurish vaqti (sek)</label>
+              <input id="admSetTimer" type="number" class="form-input" value="25" min="10" max="90" />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" class="form-group">
+            <div>
+              <label>Min. Convert (G)</label>
+              <input id="admSetMinConvert" type="number" class="form-input" value="1000" min="100" />
+            </div>
+            <div>
+              <label>Kunlik Limit (G)</label>
+              <input id="admSetMaxDaily" type="number" class="form-input" value="1000" min="100" />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;" class="form-group">
+            <div>
+              <label>Min. G'alaba</label>
+              <input id="admSetMinWins" type="number" class="form-input" value="50" min="0" />
+            </div>
+            <div>
+              <label>Min. Referal</label>
+              <input id="admSetMinRefs" type="number" class="form-input" value="5" min="0" />
+            </div>
+            <div>
+              <label>Min. ELO</label>
+              <input id="admSetMinElo" type="number" class="form-input" value="1150" min="800" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>AdsGram Reward Block ID (Video reklama uchun)</label>
+            <input id="admSetAdsgram" type="text" class="form-input" value="58136" />
+          </div>
+          <div class="form-group">
+            <label>AdsGram Interstitial Block ID (O'yin tugaganda chiqadigan reklama)</label>
+            <input id="admSetAdsgramInterstitial" type="text" class="form-input" placeholder="Agar alohida ID bo'lsa kiriting (bo'sh bo'lsa 58136 ishlaydi)" />
+          </div>
+          <div class="form-group">
+            <label>AdsGram Task Block ID (Topshiriqlar uchun Task ID)</label>
+            <input id="admSetAdsgramTask" type="text" class="form-input" value="task-58978" placeholder="Masalan: task-58978" />
+          </div>
+          <button class="btn-play-main" style="padding:11px; font-size:14px;" onclick="saveAdminSettings()">💾 Sozlamalar va Limitlarni Saqlash</button>
+        </div>
+      </div>
+
+      <!-- Admin Tab 2: Conversions Moderation -->
+      <div id="adm-convs" class="adm-pane" style="display:none;">
+        <div class="section-label">🔄 Stars va TON Yechish So'rovlari</div>
+        <div id="admConvsList"></div>
+      </div>
+
+      <!-- Admin Tab 3: Users & Anti-Cheat Control -->
+      <div id="adm-users" class="adm-pane" style="display:none;">
+        <div class="form-group">
+          <input id="admUserSearch" type="text" class="form-input" placeholder="🔍 Ism yoki ID bo'yicha qidirish..." oninput="renderAdminUsers()" />
+        </div>
+        <div id="admUsersList"></div>
+      </div>
+
+      <!-- Admin Tab 4: Sponsor Channels & Tasks -->
+      <div id="adm-tasks" class="adm-pane" style="display:none;">
+        <div class="glass-card gold-border">
+          <h3 style="font-size:15px; color:var(--gold-bright); margin-bottom:8px;">➕ Yangi Homiy Kanal Qo'shish</h3>
+          <div class="form-group">
+            <label>Kanal Username (@ bilan)</label>
+            <input id="admTaskChannel" type="text" class="form-input" placeholder="@KanalUsername" />
+          </div>
+          <div class="form-group">
+            <label>Vazifa sarlavhasi</label>
+            <input id="admTaskTitle" type="text" class="form-input" placeholder="Homiy kanalga obuna bo'ling" />
+          </div>
+          <div class="form-group">
+            <label>Mukofot (Bonus G)</label>
+            <input id="admTaskReward" type="number" class="form-input" value="25" />
+          </div>
+          <button class="btn-gold-sm" style="width:100%; padding:10px;" onclick="addAdminTask()">➕ Vazifani Qo'shish</button>
+        </div>
+        <div class="section-label">Aktiv Vazifalar</div>
+        <div id="admTasksList"></div>
+      </div>
+
+      <!-- Admin Tab 5: Tournaments Manager -->
+      <div id="adm-tours" class="adm-pane" style="display:none;">
+        <div class="glass-card gold-border">
+          <h3 style="font-size:15px; color:var(--gold-bright); margin-bottom:8px;">🏆 Yangi Turnir Yaratish</h3>
+          <div class="form-group">
+            <label>Turnir Nomi</label>
+            <input id="admTourTitle" type="text" class="form-input" placeholder="🔥 Kechki Shashka Kubogi" />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" class="form-group">
+            <div>
+              <label>O'yin turi</label>
+              <select id="admTourGame" class="form-input">
+                <option value="checkers">⚫ Shashka</option>
+                <option value="chess">♔ Shaxmat</option>
+              </select>
+            </div>
+            <div>
+              <label>Kirish valyutasi</label>
+              <select id="admTourType" class="form-input">
+                <option value="coins">🪙 Tanga (G)</option>
+                <option value="stars">⭐ Stars</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" class="form-group">
+            <div>
+              <label>Kirish narxi (0 = Bepul)</label>
+              <input id="admTourFee" type="number" class="form-input" value="0" />
+            </div>
+            <div>
+              <label>Sovrin fondi</label>
+              <input id="admTourPrize" type="number" class="form-input" value="200" />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" class="form-group">
+            <div>
+              <label>Talab: Do'stlar soni (Ref)</label>
+              <input id="admTourMinRefs" type="number" class="form-input" value="2" />
+            </div>
+            <div>
+              <label>Boshlanish soati (0-23)</label>
+              <input id="admTourHour" type="number" class="form-input" value="20" />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" class="form-group">
+            <div>
+              <label>Davomiyligi (daqiqa)</label>
+              <input id="admTourDuration" type="number" class="form-input" value="45" />
+            </div>
+            <div>
+              <label>Boshlanish uchun Min. odam</label>
+              <input id="admTourMinPlayers" type="number" class="form-input" value="4" />
+            </div>
+          </div>
+          <button class="btn-gold-sm" style="width:100%; padding:10px;" onclick="addAdminTournament()">🏆 Turnirni Ochish</button>
+        </div>
+        <div class="section-label">Aktiv Turnirlar</div>
+        <div id="admToursList"></div>
+      </div>
+    </section>
+
+    <!-- 5. SHOP / DO'KON VIEW -->
+    <section id="view-shop" class="view-section">
+      <div class="gramora-subpage-header">
+        <div class="gsh-left">
+          <button class="gsh-back-btn" onclick="switchNav('arena')" aria-label="Orqaga">‹</button>
+          <span class="gsh-icon">🛒</span>
+          <h2 class="gsh-title" data-i18n="navShop">DO'KON</h2>
+          <span id="shopVipStatusBadge" class="vip-crown-badge" style="display:none;">👑 VIP</span>
+        </div>
+        <div class="gsh-balance-pill" onclick="openDepositView()">
+          <span class="gsh-coin-val user-coins-sync">50</span>
+          <span class="gsh-coin-3d">G</span>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: #e7cfa1; margin-bottom: 14px;" data-i18n="shopSub">
+        Yig'ilgan tangalaringizga yangi taxtalar, donalar va VIP status xarid qiling
+      </p>
+
+      <div class="shop-tabs">
+        <button id="shopTabBoards" class="shop-tab-btn active" onclick="switchShopTab('board')">🪵 Taxtalar</button>
+        <button id="shopTabPieces" class="shop-tab-btn" onclick="switchShopTab('piece')">♟️ Donalar</button>
+        <button id="shopTabVip" class="shop-tab-btn" onclick="switchShopTab('vip')">👑 VIP Status</button>
+      </div>
+
+      <div id="shopItemsGrid" class="shop-grid"></div>
+    </section>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-nav="arena" onclick="switchNav('arena')">
+        <span class="ico">⚔️</span>
+        <span data-i18n="navArena">Arena</span>
+      </button>
+      <button id="navShopBtn" class="nav-item" data-nav="shop" onclick="switchNav('shop')">
+        <span class="ico">🛒</span>
+        <span data-i18n="navShop">Do'kon</span>
+      </button>
+      <button class="nav-item" data-nav="tournaments" onclick="switchNav('tournaments')">
+        <span class="ico">🏆</span>
+        <span data-i18n="navTournaments">Turnirlar</span>
+      </button>
+      <button class="nav-item" data-nav="tasks" onclick="switchNav('tasks')">
+        <span class="ico">🎁</span>
+        <span data-i18n="navTasks">Ko'paytirish</span>
+      </button>
+      <button class="nav-item" data-nav="convert" onclick="switchNav('convert')">
+        <span class="ico">🔄</span>
+        <span data-i18n="navConvert">Convert</span>
+      </button>
+      <button class="nav-item" data-nav="rating" onclick="switchNav('rating')">
+        <span class="ico">📊</span>
+        <span data-i18n="navRating">Reyting</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Language Selection Modal -->
+  <div id="langModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size: 36px; margin-bottom: 8px;">🌍</div>
+      <h3 data-i18n="welcomeModalTitle">Tilni tanlang / Choose Language</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" data-i18n="welcomeModalSub">
+        Istalgan vaqtda yuqori menyudan o'zgartirishingiz mumkin
+      </p>
+      <div class="lang-choice-list">
+        <button class="lang-choice-btn" onclick="chooseLanguage('uz')">🇺🇿 O'zbekcha</button>
+        <button class="lang-choice-btn" onclick="chooseLanguage('ru')">🇷🇺 Русский</button>
+        <button class="lang-choice-btn" onclick="chooseLanguage('en')">🇬🇧 English</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Searching Match Queue Modal -->
+  <div id="queueModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size: 42px; margin-bottom: 10px;">⏳</div>
+      <h3 data-i18n="searchingTitle">Raqib qidirilmoqda...</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 18px;" data-i18n="searchingSub">
+        Reytingingizga mos o'yinchi tanlanmoqda
+      </p>
+      <button class="btn-resign" style="width: 100%; padding: 11px;" onclick="cancelMatchmaking()" data-i18n="cancelBtn">
+        Bekor qilish
+      </button>
+    </div>
+  </div>
+
+  <!-- Group Multiplayer Waiting Lobby Modal (Zakovat & Ludo) -->
+  <div id="groupLobbyModal" class="modal-overlay">
+    <div class="modal-card" style="max-width:380px; text-align:center; border:2px solid #f59e0b; background:linear-gradient(165deg,#1b2e20,#0b1910);">
+      <div id="groupLobbyIcon" style="font-size:42px; margin-bottom:6px;">🧠</div>
+      <h3 id="groupLobbyTitle" style="color:var(--gold-bright); font-size:18px; margin-bottom:4px;">Zakovat Guruh Xonasi</h3>
+      <p id="groupLobbySubtitle" style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">Guruhdoshlar kutilmoqda (1/4)</p>
+      
+      <!-- Player Slots (4 spots) -->
+      <div id="groupLobbyPlayersList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <!-- Host Only Start Button -->
+        <button id="groupLobbyStartBtn" class="btn-play-main" style="display:none; width:100%; padding:12px; font-size:14px; background:linear-gradient(135deg,#10b981,#059669); box-shadow:0 4px 16px rgba(16,185,129,0.4);" onclick="startGroupRoomNow()">
+          ▶️ Hozir Boshlash (Botlar bilan)
+        </button>
+        <!-- Invite Friends to Room button -->
+        <button id="groupLobbyShareBtn" class="btn-play-main" style="width:100%; padding:11px; font-size:13px; background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="shareGroupRoomLink()">
+          📤 Do'stlarni Chaqirish
+        </button>
+        <!-- Leave Room Button -->
+        <button class="btn-resign" style="width:100%; padding:10px; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.15); color:var(--text-muted);" onclick="leaveGroupRoom()">
+          ❌ Chiqish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div id="gameOverModal" class="modal-overlay">
+    <div class="modal-card">
+      <div id="goIcon" style="font-size: 48px; margin-bottom: 8px;">🏆</div>
+      <h2 id="goTitle" style="margin-bottom: 6px;">G'ALABA!</h2>
+      <p id="goSub" style="font-size: 14px; color: var(--gold-bright); font-weight: 700; margin-bottom: 14px;">
+        +8 G • +16 ELO
+      </p>
+
+      <!-- 2x Double Win Card / Button -->
+      <div id="goDoubleWinBox" style="display:none; margin-bottom: 12px;">
+        <button id="btnDoubleWin" class="btn-play-main" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 18px rgba(245,158,11,0.45); padding: 12px; font-size: 14px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="claimDoubleWinAction()">
+          <span>🎬</span>
+          <span id="btnDoubleWinText">G'alabani 2x Qilish (+8 G)</span>
+        </button>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">1 ta qisqa video ko'rib mukofotni 2 barobarga oshiring</div>
+      </div>
+
+      <!-- Loss Protection Card / Button -->
+      <div id="goLossProtectBox" style="display:none; margin-bottom: 12px;">
+        <button id="btnLossProtect" class="btn-play-main" style="background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 4px 18px rgba(16,185,129,0.45); padding: 12px; font-size: 14px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="claimLossProtectAction()">
+          <span>🛡️</span>
+          <span id="btnLossProtectText">ELO Qalqoni: ELO ni saqlab qolish</span>
+        </button>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">1 ta qisqa video ko'ring va yo'qotilgan ELO ballingizni tiklang</div>
+      </div>
+
+      <!-- Story Share Card / Button -->
+      <div id="goStoryShareBox" style="display:none; margin-bottom: 12px;">
+        <button id="btnStoryShare" class="btn-play-main" style="background: linear-gradient(135deg, #0284c7, #0369a1); box-shadow: 0 4px 18px rgba(2,132,199,0.45); padding: 12px; font-size: 14px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="shareWinToTelegramStory()">
+          <span>📱</span>
+          <span id="btnStoryShareText">Telegram Story'da Ulashish (+25 G)</span>
+        </button>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">G'alabangizni Story'da ulashing va darhol +25 G bonus oling</div>
+      </div>
+
+      <button class="btn-play-main" style="padding: 12px; font-size: 15px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="closeGameOverModal()" data-i18n="backToLobby">
+        Arenaga qaytish
+      </button>
+    </div>
+  </div>
+
+  <!-- Hint Modal -->
+  <div id="hintModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size: 40px; margin-bottom: 8px;">💡</div>
+      <h3 style="margin-bottom: 6px;" data-i18n="hintModalTitle">Yurish Maslahati (Hint)</h3>
+      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;" data-i18n="hintModalSub">
+        Grossmeyster AI hisoblagan eng yaxshi yurishni taxtada ko'rishni xohlaysizmi?<br />
+        1 ta qisqa video ko'ring va eng to'g'ri yurish ochiladi!
+      </p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn-play-main" style="width: 100%; padding: 12px 10px; font-size: 12px !important; line-height: 1.3; background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 16px rgba(245,158,11,0.4);" onclick="watchAdForHint()" data-i18n="watchAdForHintBtn">
+          🎬 Videoni ko'rish va Maslahatni ochish
+        </button>
+        <button class="btn-resign" style="width:100%; padding:10px;" onclick="closeHintModal()" data-i18n="cancelBtn">
+          Bekor qilish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/i18n.js?v=16"></script>
+  <script src="/app.js?v=16"></script>
+</body>
+</html>
